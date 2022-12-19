@@ -2,7 +2,7 @@
 #define __LEX_
 
 extern FILE *srcf;
-extern dlist_t tokens;
+extern dlist_t *tokens;
 
 typedef struct
 {
@@ -10,6 +10,7 @@ typedef struct
     union
     {
         int i;
+        int id;
         float f;
     } value;
     int line;
@@ -17,6 +18,7 @@ typedef struct
 
 int next(token_t *t);
 int back();
+int tokseq(int n, ...);
 void lex();
 
 #endif

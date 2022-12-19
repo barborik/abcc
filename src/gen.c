@@ -114,7 +114,7 @@ int gen(asnode_t *root)
         return asm_mul(leftreg, rightreg);
     case T_FSLASH:
         return asm_div(leftreg, rightreg);
-    case T_LITINT:
+    case T_INTLIT:
         return asm_load(root->token->value.i);
     default:
         printf("ERROR: unknown operator %d\n", root->token->token);

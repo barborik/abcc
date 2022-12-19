@@ -40,15 +40,26 @@ static int prec[] = {NULL, 1, 1, 2, 2, NULL, 0};
 enum
 {
     // operators
-    T_OPSTART, // start and end pseudo-tokens for comparing ranges, if token is between T_OPSTART and T_OPEND then it is an operator
-    T_PLUS,
-    T_MINUS,
-    T_ASTERISK,
-    T_FSLASH,
+    T_OPSTART,  // start and end pseudo-tokens for comparing ranges, if token is between T_OPSTART and T_OPEND then it is an operator
+    T_PLUS,     // +
+    T_MINUS,    // -
+    T_ASTERISK, // *
+    T_FSLASH,   // /
+    T_EQUALS,   // ==
     T_OPEND,
 
     // literals
-    T_LITINT,
+    T_INTLIT, // integer literal
+
+    // types
+    T_TSTART,
+    T_I32, // signed 32bit integer (int)
+    T_TEND,
+
+    // other
+    T_ASSIGN,    // =
+    T_SEMICOLON, // ;
+    T_IDENT,     // identity
 };
 
 #endif

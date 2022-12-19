@@ -2,19 +2,19 @@
 
 int line;
 FILE *srcf;
-dlist_t tokens;
+dlist_t *tokens;
 size_t tindex = 0;
 
 // sets the passed token to the next token available
 // returns 1 on success and 0 on failure
 int next(token_t *t)
 {
-    if (tindex > tokens.used - 1)
+    if (tindex > tokens->used - 1)
     {
         return 0;
     }
 
-    *t = *((token_t *)tokens.get[tindex]);
+    *t = *((token_t *)tokens->get[tindex]);
     tindex++;
     return 1;
 }
@@ -48,6 +48,32 @@ int nextc()
     return c;
 }
 
+// matches token sequence
+int tokseq(int n, ...)
+{
+    token_t t;
+    va_list list;
+    va_start(list, n);
+
+    for (int i = 0; i < n; i++)
+    {
+        next(&t);
+        if (va_arg(list, int) != t.token)
+        {
+            for (int j = 0; j < i; i++)
+            {
+                back();
+            }
+
+            va_end(list);
+            return 0;
+        }
+    }
+
+    va_end(list);
+    return 1;
+}
+
 // parses and returns next integer in the source file stream
 // reader head must be on the first digit
 int parse2i()
@@ -63,6 +89,37 @@ int parse2i()
 
     fseek(srcf, -1, SEEK_CUR);
     return v;
+}
+
+void keyword(token_t *t)
+{
+    // load the keyword
+    fseek(srcf, -1, SEEK_CUR);
+    char kword[1024];
+    int i = 0, c = fgetc(srcf);
+    while (isalpha(c) || isdigit(c))
+    {
+        kword[i] = c;
+        c = fgetc(srcf);
+        i++;
+    }
+    fseek(srcf, -1, SEEK_CUR);
+    kword[i] = 0;
+
+    // match the keyword
+    if (!strcmp(kword, "I32"))
+    {
+        t->token = T_I32;
+        return;
+    }
+
+    t->token = T_IDENT;
+    if (findglob(kword) == -1)
+    {
+        addglob(kword);
+    }
+    t->token.id = findglob(kword);
+    return;
 }
 
 // scans the next token
@@ -88,12 +145,30 @@ int scan(token_t *t)
     case '/':
         t->token = T_FSLASH;
         break;
+
+    // other
+    case '=':
+        if (fgetc(srcf) == '=')
+        {
+            t->token = T_EQUALS;
+            break;
+        }
+        fseek(srcf, -1, SEEK_CUR);
+
+        t->token = T_ASSIGN;
+        break;
+    case ';':
+        t->token = T_SEMICOLON;
+        break;
     default:
         if (isdigit(c))
         {
-            t->token = T_LITINT;
+            t->token = T_INTLIT;
             t->value.i = parse2i(c);
+            break;
         }
+
+        keyword(t);
         break;
     }
 
@@ -103,11 +178,12 @@ int scan(token_t *t)
 
 void lex()
 {
-    dl_init(&tokens, sizeof(token_t));
+    tokens = malloc(sizeof(dlist_t));
+    dl_init(tokens, sizeof(token_t));
 
     token_t t;
     while (scan(&t))
     {
-        dl_add(&tokens, &t);
+        dl_add(tokens, &t);
     }
 }

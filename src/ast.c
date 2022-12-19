@@ -85,7 +85,7 @@ int interpret(asnode_t *root)
         return leftop * rightop;
     case T_FSLASH:
         return leftop / rightop;
-    case T_LITINT:
+    case T_INTLIT:
         return root->token->value.i;
     default:
         printf("ERROR: unknown operator %d\n", root->token->token);
