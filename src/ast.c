@@ -12,10 +12,20 @@ asnode_t *mknode(token_t *token, asnode_t *left, asnode_t *right)
     return node;
 }
 
-// checks if a given token is an operator
-int isop(token_t t)
+// checks if a given token is an operator token
+int isop(token_t *t)
 {
-    if (t.token > T_OPSTART && t.token < T_OPEND)
+    if (t->token > T_OPSTART && t->token < T_OPEND)
+    {
+        return 1;
+    }
+    return 0;
+}
+
+// checks if a given token is a type token
+int istype(token_t *t)
+{
+    if (t->token > T_TSTART && t->token < T_TEND)
     {
         return 1;
     }
@@ -35,7 +45,7 @@ asnode_t *binexp(int ptp)
 
     // operator (if available)
     op = malloc(sizeof(token_t));
-    if (!next(op) || !isop(*op))
+    if (!next(op) || !isop(op))
     {
         back();
         free(op);
@@ -49,7 +59,7 @@ asnode_t *binexp(int ptp)
         left = mknode(op, left, right);
 
         op = malloc(sizeof(token_t));
-        if (!next(op) || !isop(*op))
+        if (!next(op) || !isop(op))
         {
             back();
             free(op);

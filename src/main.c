@@ -5,6 +5,14 @@ int main(int argc, char *argv[])
     srcf = fopen(argv[1], "r");
     asmf = fopen("out.asm", "w");
 
+    lex();
+
+    asm_preamble();
+    asm_postamble();
+
+    fclose(srcf);
+    fclose(asmf);
+
     /*lex();
 
     asnode_t *root = binexp(0);

@@ -53,13 +53,18 @@ enum
 
     // types
     T_TSTART,
+    T_I8,  // signed 8bit integer  (char)
+    T_I16, // signed 16bit integer (short)
     T_I32, // signed 32bit integer (int)
+    T_I64, // signed 64bit integer (long)
     T_TEND,
 
     // other
     T_ASSIGN,    // =
     T_SEMICOLON, // ;
-    T_IDENT,     // identity
+    T_IDENT,     // identifier
+    T_LVIDENT,   // left value ident
+    T_RVIDENT,   // right value ident
 };
 
 #endif

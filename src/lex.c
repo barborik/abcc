@@ -32,6 +32,12 @@ int back()
     return 1;
 }
 
+// resets the token iterator
+void reset()
+{
+    tindex = 0;
+}
+
 // returns the next non-whitespace character
 int nextc()
 {
@@ -107,18 +113,36 @@ void keyword(token_t *t)
     kword[i] = 0;
 
     // match the keyword
+    if (!strcmp(kword, "I8"))
+    {
+        t->token = T_I8;
+        return;
+    }
+
+    if (!strcmp(kword, "I16"))
+    {
+        t->token = T_I16;
+        return;
+    }
+
     if (!strcmp(kword, "I32"))
     {
         t->token = T_I32;
         return;
     }
 
+    if (!strcmp(kword, "I64"))
+    {
+        t->token = T_I64;
+        return;
+    }
+
     t->token = T_IDENT;
-    if (findglob(kword) == -1)
+    if (findglob(kword) < 0)
     {
         addglob(kword);
     }
-    t->token.id = findglob(kword);
+    t->value.id = findglob(kword);
     return;
 }
 

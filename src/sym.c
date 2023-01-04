@@ -32,7 +32,6 @@ void addglob(char *name)
     }
 
     char *final = malloc(strlen(name) * sizeof(char) + 1);
-    final[strlen(name)] = 0;
+    strcpy(final, name);
     dl_add(glob, final);
-    return;
 }

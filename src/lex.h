@@ -18,6 +18,7 @@ typedef struct
 
 int next(token_t *t);
 int back();
+void reset();
 int tokseq(int n, ...);
 void lex();
 

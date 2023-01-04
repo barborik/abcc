@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS = -O2 -Wall -Wextra -Wpedantic -Wno-unused-function
+CFLAGS = -g -Wall -Wextra -Wpedantic -Wno-unused-function
 LFLAGS = 
 
 INCL = 

@@ -61,13 +61,49 @@ int asm_div(int reg0, int reg1)
     return reg0;
 }
 
+void asm_addglob(token_t *t, size_t val)
+{
+    char len[8];
+    if (t->token == T_I8)  sprintf(len, "db");
+    if (t->token == T_I16) sprintf(len, "dw");
+    if (t->token == T_I32) sprintf(len, "dd");
+    if (t->token == T_I64) sprintf(len, "dq");
+
+    fprintf(asmf, "%s:\t\t%s %zu\n", glob->get[t->value.id], len, val);
+}
+
+int asm_loadglob(int id)
+{
+    int reg = ralloc();
+    fprintf(asmf, "\tmov\t%s, [%s]\n", reglist[reg], glob->get[id]);
+    return reg;
+}
+
 void asm_preamble()
 {
+    // externs, globals etc.
     fprintf(asmf,
             "\tglobal  main\n"
             "\textern  printf\n"
-            "\textern  ExitProcess\n\n"
-            "\tsection .text\n"
+            "\textern  ExitProcess\n\n");
+
+    // bss section
+    fprintf(asmf, 
+            "\tsection .bss\n"
+    );
+    token_t t;
+    while(next(&t))
+    {
+        if(istype(&t))
+        {
+            asm_addglob(&t, 0);
+        }
+    }
+    reset();
+
+    // text section
+    fprintf(asmf,
+            "\n\tsection .text\n"
             "format:\n"
             "\tdb\t\t\"%%d\", 10, 0\n"
             "printint:\n"
@@ -102,8 +138,6 @@ int gen(asnode_t *root)
         rightreg = gen(root->right);
     }
 
-    // printf("left: %d | right: %d\n", leftreg, rightreg);
-
     switch (root->token->token)
     {
     case T_PLUS:
@@ -116,6 +150,8 @@ int gen(asnode_t *root)
         return asm_div(leftreg, rightreg);
     case T_INTLIT:
         return asm_load(root->token->value.i);
+    case T_IDENT:
+        return asm_loadglob(root->token->value.id);
     default:
         printf("ERROR: unknown operator %d\n", root->token->token);
         exit(1);
