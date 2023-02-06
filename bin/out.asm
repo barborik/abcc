@@ -3,10 +3,9 @@
 	extern  ExitProcess
 
 	section .bss
+abc:		dd 0
 a:		db 0
-a:		dw 0
-b:		dd 0
-c:		dq 0
+b:		dw 0
 
 	section .text
 format:

@@ -61,21 +61,21 @@ int asm_div(int reg0, int reg1)
     return reg0;
 }
 
-void asm_addglob(token_t *t, size_t val)
+void asm_addglob(sym_t *sym, size_t val)
 {
-    char len[8];
-    if (t->token == T_I8)  sprintf(len, "db");
-    if (t->token == T_I16) sprintf(len, "dw");
-    if (t->token == T_I32) sprintf(len, "dd");
-    if (t->token == T_I64) sprintf(len, "dq");
+    char len[4];
+    if (sym->type == T_I8)  sprintf(len, "db");
+    if (sym->type == T_I16) sprintf(len, "dw");
+    if (sym->type == T_I32) sprintf(len, "dd");
+    if (sym->type == T_I64) sprintf(len, "dq");
 
-    fprintf(asmf, "%s:\t\t%s %zu\n", glob->get[t->value.id], len, val);
+    fprintf(asmf, "%s:\t\t%s %zu\n", sym->name, len, val);
 }
 
-int asm_loadglob(int id)
+int asm_loadglob(sym_t *sym)
 {
     int reg = ralloc();
-    fprintf(asmf, "\tmov\t%s, [%s]\n", reglist[reg], glob->get[id]);
+    fprintf(asmf, "\tmov\t%s, [%s]\n", reglist[reg], sym->name);
     return reg;
 }
 
@@ -85,21 +85,17 @@ void asm_preamble()
     fprintf(asmf,
             "\tglobal  main\n"
             "\textern  printf\n"
-            "\textern  ExitProcess\n\n");
+            "\textern  ExitProcess\n\n"
+    );
 
     // bss section
-    fprintf(asmf, 
+    fprintf(asmf,
             "\tsection .bss\n"
     );
-    token_t t;
-    while(next(&t))
+    for(size_t i = 0; i < glob->used; i++)
     {
-        if(istype(&t))
-        {
-            asm_addglob(&t, 0);
-        }
+        asm_addglob(glob->get[i], 0);
     }
-    reset();
 
     // text section
     fprintf(asmf,
@@ -113,7 +109,8 @@ void asm_preamble()
             "\tcall\tprintf\n"
             "\tadd\t\trsp, 32\n"
             "\tret\n\n"
-            "main:\n");
+            "main:\n"
+    );
 }
 
 void asm_postamble()
@@ -151,7 +148,7 @@ int gen(asnode_t *root)
     case T_INTLIT:
         return asm_load(root->token->value.i);
     case T_IDENT:
-        return asm_loadglob(root->token->value.id);
+        return asm_loadglob(glob->get[root->token->value.id]);
     default:
         printf("ERROR: unknown operator %d\n", root->token->token);
         exit(1);

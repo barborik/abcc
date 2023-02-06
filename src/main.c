@@ -7,6 +7,8 @@ int main(int argc, char *argv[])
 
     lex();
 
+    // printf("D: %d\n", findglob("abc"));
+
     asm_preamble();
     asm_postamble();
 

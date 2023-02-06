@@ -8,9 +8,9 @@
 
 #include "dlist.h"
 #include "defs.h"
+#include "sym.h"
 #include "lex.h"
 #include "ast.h"
 #include "gen.h"
-#include "sym.h"
 
 #endif

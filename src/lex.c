@@ -1,6 +1,7 @@
 #include "includes.h"
 
 int line;
+int last;
 FILE *srcf;
 dlist_t *tokens;
 size_t tindex = 0;
@@ -140,7 +141,7 @@ void keyword(token_t *t)
     t->token = T_IDENT;
     if (findglob(kword) < 0)
     {
-        addglob(kword);
+        addglob(last, kword);
     }
     t->value.id = findglob(kword);
     return;
@@ -208,6 +209,7 @@ void lex()
     token_t t;
     while (scan(&t))
     {
+        last = t.token;
         dl_add(tokens, &t);
     }
 }
