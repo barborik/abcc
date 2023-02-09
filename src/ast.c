@@ -39,16 +39,13 @@ asnode_t *binexp(int ptp)
     token_t *op, *token_l;
 
     // left operand
-    token_l = malloc(sizeof(token_t));
-    next(token_l);
+    next(&token_l);
     left = mknode(token_l, NULL, NULL);
 
     // operator (if available)
-    op = malloc(sizeof(token_t));
-    if (!next(op) || !isop(op))
+    if (!next(&op) || !isop(op))
     {
         back();
-        free(op);
         return left;
     }
 
@@ -58,11 +55,9 @@ asnode_t *binexp(int ptp)
         right = binexp(prec[op->token]);
         left = mknode(op, left, right);
 
-        op = malloc(sizeof(token_t));
-        if (!next(op) || !isop(op))
+        if (!next(&op) || !isop(op))
         {
             back();
-            free(op);
             return left;
         }
     }

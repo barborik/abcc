@@ -16,7 +16,7 @@ typedef struct
     int line;
 } token_t;
 
-int next(token_t *t);
+int next(token_t **t);
 int back();
 void reset();
 int tokseq(int n, ...);

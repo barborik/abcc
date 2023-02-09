@@ -8,14 +8,14 @@ size_t tindex = 0;
 
 // sets the passed token to the next token available
 // returns 1 on success and 0 on failure
-int next(token_t *t)
+int next(token_t **t)
 {
     if (tindex > tokens->used - 1)
     {
         return 0;
     }
 
-    *t = *((token_t *)tokens->get[tindex]);
+    *t = ((token_t *)tokens->get[tindex]);
     tindex++;
     return 1;
 }

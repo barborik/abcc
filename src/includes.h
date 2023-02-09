@@ -12,5 +12,7 @@
 #include "lex.h"
 #include "ast.h"
 #include "gen.h"
+#include "stmt.h"
+#include "decl.h"
 
 #endif

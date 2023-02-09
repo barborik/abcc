@@ -7,9 +7,15 @@ int main(int argc, char *argv[])
 
     lex();
 
-    // printf("D: %d\n", findglob("abc"));
+    /*token_t t;
+    while (next(&t)) printf("%d\n", t.token);
+    return;*/
 
     asm_preamble();
+    
+    var_decl();
+    assign_stmt();
+
     asm_postamble();
 
     fclose(srcf);

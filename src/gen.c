@@ -18,9 +18,14 @@ int ralloc()
     return -1;
 }
 
-int rfree(int reg)
+void rfree(int reg)
 {
     regalloc[reg] = 0;
+}
+
+void rfree_all()
+{
+    memset(regalloc, 0, sizeof(regalloc));
 }
 
 int asm_load(int val)
@@ -79,20 +84,24 @@ int asm_loadglob(sym_t *sym)
     return reg;
 }
 
+int asm_storeglob(int reg, sym_t *sym)
+{
+    fprintf(asmf, "\tmov\t\t%s, %s\n", sym->name, reglist[reg]);
+    return reg;
+}
+
 void asm_preamble()
 {
     // externs, globals etc.
     fprintf(asmf,
             "\tglobal  main\n"
             "\textern  printf\n"
-            "\textern  ExitProcess\n\n"
-    );
+            "\textern  ExitProcess\n\n");
 
     // bss section
     fprintf(asmf,
-            "\tsection .bss\n"
-    );
-    for(size_t i = 0; i < glob->used; i++)
+            "\tsection .bss\n");
+    for (size_t i = 0; glob && i < glob->used; i++)
     {
         asm_addglob(glob->get[i], 0);
     }
@@ -109,8 +118,7 @@ void asm_preamble()
             "\tcall\tprintf\n"
             "\tadd\t\trsp, 32\n"
             "\tret\n\n"
-            "main:\n"
-    );
+            "main:\n");
 }
 
 void asm_postamble()
@@ -122,17 +130,17 @@ void asm_postamble()
             "\tcall\tExitProcess\n");
 }
 
-int gen(asnode_t *root)
+int gen(asnode_t *root, int reg)
 {
     int leftreg, rightreg;
 
     if (root->left)
     {
-        leftreg = gen(root->left);
+        leftreg = gen(root->left, -1);
     }
     if (root->right)
     {
-        rightreg = gen(root->right);
+        rightreg = gen(root->right, leftreg);
     }
 
     switch (root->token->token)
@@ -149,6 +157,10 @@ int gen(asnode_t *root)
         return asm_load(root->token->value.i);
     case T_IDENT:
         return asm_loadglob(glob->get[root->token->value.id]);
+    case T_LVIDENT:
+        return asm_storeglob(reg, glob->get[root->token->value.id]);
+    case T_ASSIGN:
+        return rightreg;
     default:
         printf("ERROR: unknown operator %d\n", root->token->token);
         exit(1);

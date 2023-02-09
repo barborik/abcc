@@ -4,8 +4,6 @@
 
 	section .bss
 abc:		dd 0
-a:		db 0
-b:		dw 0
 
 	section .text
 format:
@@ -19,6 +17,12 @@ printint:
 	ret
 
 main:
+	mov		rax, 4
+	mov		rbx, 2
+	mov		rcx, 6
+	imul	rbx, rcx
+	add		rax, rbx
+	mov		abc, rax
 
 	call printint
 	mov		rcx, 0
