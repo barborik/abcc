@@ -23,10 +23,12 @@ r15             | r15d          | r15w          | r15b
 */
 
 /*
-parameter type     | first | second | third | fourth | fifth and higher
-=======================================================================
-float              | XMM0  | XMM1   | XMM2  | XMM3   | stack
-integer or pointer | rcx   | rdx    | r8    | r9     | stack
+parameter type               | first | second | third | fourth | fifth | sixth | seventh | eight | ninth and higher
+====================================================================================================================
+UNIX    - float              | XMM0  | XMM1   | XMM2  | XMM3   | XMM4  | XMM5  | XMM6    | XMM7  | stack
+UNIX    - integer or pointer | rdi   | rsi    | rdx   | rcx    | r8    | r9    | stack
+WINDOWS - float              | XMM0  | XMM1   | XMM2  | XMM3   | stack
+WINDOWS - integer or pointer | rcx   | rdx    | r8    | r9     | stack
 */
 
 // register list
@@ -65,6 +67,7 @@ enum
     T_IDENT,     // identifier
     T_LVIDENT,   // left value ident
     T_RVIDENT,   // right value ident
+    T_GLUE,      // glue token for holding together asnodes
 };
 
 #endif

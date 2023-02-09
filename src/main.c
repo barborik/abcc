@@ -12,9 +12,14 @@ int main(int argc, char *argv[])
     return;*/
 
     asm_preamble();
-    
-    var_decl();
-    assign_stmt();
+
+    // var_decl();
+    // assign_stmt();
+    asnode_t *root = stmt();
+
+    printf("left: %d right: %d\n", root->left->token->token, root->right->token->token);
+
+    gen(root, -1);
 
     asm_postamble();
 

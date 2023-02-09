@@ -1,0 +1,2 @@
+nasm -f elf64 out.asm
+gcc out.o -fPIE -no-pie

@@ -86,7 +86,7 @@ int asm_loadglob(sym_t *sym)
 
 int asm_storeglob(int reg, sym_t *sym)
 {
-    fprintf(asmf, "\tmov\t\t%s, %s\n", sym->name, reglist[reg]);
+    fprintf(asmf, "\tmov\t\t[%s], %s\n", sym->name, reglist[reg]);
     return reg;
 }
 
@@ -96,7 +96,7 @@ void asm_preamble()
     fprintf(asmf,
             "\tglobal  main\n"
             "\textern  printf\n"
-            "\textern  ExitProcess\n\n");
+            "\textern  exit\n\n");
 
     // bss section
     fprintf(asmf,
@@ -112,8 +112,8 @@ void asm_preamble()
             "format:\n"
             "\tdb\t\t\"%%d\", 10, 0\n"
             "printint:\n"
-            "\tmov\t\trdx, rax\n"
-            "\tmov\t\trcx, format\n"
+            "\tmov\t\trsi, rax\n"
+            "\tmov\t\trdi, format\n"
             "\tsub\t\trsp, 32\n"
             "\tcall\tprintf\n"
             "\tadd\t\trsp, 32\n"
@@ -125,13 +125,23 @@ void asm_postamble()
 {
     fprintf(asmf,
             "\n\tcall printint\n"
-            "\tmov\t\trcx, 0\n"
+            "\tmov\t\trsi, 0\n"
             "\tsub\t\trsp, 32\n"
-            "\tcall\tExitProcess\n");
+            "\tcall\texit\n");
 }
 
 int gen(asnode_t *root, int reg)
 {
+    switch (root->token->token)
+    {
+    case T_GLUE:
+        gen(root->left, -1);
+        rfree_all();
+        gen(root->right, -1);
+        rfree_all();
+        return -1;
+    }
+
     int leftreg, rightreg;
 
     if (root->left)
