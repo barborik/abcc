@@ -1,6 +1,8 @@
 #ifndef __GEN_
 #define __GEN_
 
+#define NULLREG -1
+
 extern FILE *asmf;
 
 void rfree_all();

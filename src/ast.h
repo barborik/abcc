@@ -5,6 +5,7 @@ typedef struct asnode
 {
     token_t *token;
     struct asnode *left;
+    struct asnode *mid;
     struct asnode *right;
 } asnode_t;
 

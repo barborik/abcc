@@ -67,7 +67,14 @@ enum
     T_IDENT,     // identifier
     T_LVIDENT,   // left value ident
     T_RVIDENT,   // right value ident
-    T_GLUE,      // glue token for holding together asnodes
+    T_JOIN,      // token for holding asnodes together
+
+    // TODO: sort these
+    T_IF,     // if statement
+    T_LPAR,   // (
+    T_RPAR,   // )
+    T_LBRACE, // {
+    T_RBRACE, // }
 };
 
 #endif

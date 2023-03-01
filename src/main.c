@@ -3,7 +3,7 @@
 int main(int argc, char *argv[])
 {
     srcf = fopen(argv[1], "r");
-    asmf = fopen("out.asm", "w");
+    asmf = fopen(argv[2], "w");
 
     lex();
 
@@ -15,11 +15,17 @@ int main(int argc, char *argv[])
 
     // var_decl();
     // assign_stmt();
-    asnode_t *root = stmt();
+    // asnode_t *root = stmt();
 
-    printf("left: %d right: %d\n", root->left->token->token, root->right->token->token);
+    // printf("left: %d right: %d\n", root->left->token->token, root->right->token->token);
 
-    gen(root, -1);
+    // gen(root, -1);
+    /*token_t *t;
+    while (next(&t))
+    {
+        printf("token: %d\n", t->token);
+    }*/
+    stmt();
 
     asm_postamble();
 

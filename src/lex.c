@@ -138,6 +138,12 @@ void keyword(token_t *t)
         return;
     }
 
+    if (!strcmp(kword, "if"))
+    {
+        t->token = T_IF;
+        return;
+    }
+
     t->token = T_IDENT;
     if (findglob(kword) < 0)
     {
@@ -184,6 +190,18 @@ int scan(token_t *t)
         break;
     case ';':
         t->token = T_SEMICOLON;
+        break;
+    case '(':
+        t->token = T_RPAR;
+        break;
+    case ')':
+        t->token = T_LPAR;
+        break;
+    case '{':
+        t->token = T_LBRACE;
+        break;
+    case '}':
+        t->token = T_RBRACE;
         break;
     default:
         if (isdigit(c))

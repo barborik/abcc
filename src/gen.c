@@ -132,25 +132,18 @@ void asm_postamble()
 
 int gen(asnode_t *root, int reg)
 {
-    switch (root->token->token)
-    {
-    case T_GLUE:
-        gen(root->left, -1);
-        rfree_all();
-        gen(root->right, -1);
-        rfree_all();
-        return -1;
-    }
+    int leftreg = NULLREG, rightreg = NULLREG;
 
-    int leftreg, rightreg;
-
-    if (root->left)
+    if (root->token->token != T_JOIN)
     {
-        leftreg = gen(root->left, -1);
-    }
-    if (root->right)
-    {
-        rightreg = gen(root->right, leftreg);
+        if (root->left)
+        {
+            leftreg = gen(root->left, -1);
+        }
+        if (root->right)
+        {
+            rightreg = gen(root->right, leftreg);
+        }
     }
 
     switch (root->token->token)
@@ -171,6 +164,12 @@ int gen(asnode_t *root, int reg)
         return asm_storeglob(reg, glob->get[root->token->value.id]);
     case T_ASSIGN:
         return rightreg;
+    case T_JOIN:
+        gen(root->left, NULLREG);
+        rfree_all();
+        gen(root->right, NULLREG);
+        rfree_all();
+        return NULLREG;
     default:
         printf("ERROR: unknown operator %d\n", root->token->token);
         exit(1);
