@@ -1,12 +1,13 @@
 #include "includes.h"
 
 // make (construct) an asnode
-asnode_t *mknode(token_t *token, asnode_t *left, asnode_t *right)
+asnode_t *mknode(token_t *token, asnode_t *left, asnode_t *mid, asnode_t *right)
 {
     asnode_t *node = malloc(sizeof(asnode_t));
 
     node->token = token;
     node->left = left;
+    node->mid = mid;
     node->right = right;
 
     return node;
@@ -40,7 +41,7 @@ asnode_t *binexp(int ptp)
 
     // left operand
     next(&token_l);
-    left = mknode(token_l, NULL, NULL);
+    left = mknode(token_l, NULL, NULL, NULL);
 
     // operator (if available)
     if (!next(&op) || !isop(op))
@@ -53,7 +54,7 @@ asnode_t *binexp(int ptp)
     while (prec[op->token] > ptp)
     {
         right = binexp(prec[op->token]);
-        left = mknode(op, left, right);
+        left = mknode(op, left, NULL, right);
 
         if (!next(&op) || !isop(op))
         {
@@ -64,36 +65,4 @@ asnode_t *binexp(int ptp)
 
     back();
     return left;
-}
-
-// interprets the AST for testing purposes
-int interpret(asnode_t *root)
-{
-    int leftop, rightop;
-
-    if (root->left)
-    {
-        leftop = interpret(root->left);
-    }
-    if (root->right)
-    {
-        rightop = interpret(root->right);
-    }
-
-    switch (root->token->token)
-    {
-    case T_PLUS:
-        return leftop + rightop;
-    case T_MINUS:
-        return leftop - rightop;
-    case T_ASTERISK:
-        return leftop * rightop;
-    case T_FSLASH:
-        return leftop / rightop;
-    case T_INTLIT:
-        return root->token->value.i;
-    default:
-        printf("ERROR: unknown operator %d\n", root->token->token);
-        exit(1);
-    }
 }

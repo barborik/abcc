@@ -17,8 +17,6 @@ typedef struct
 int isop(token_t *t);
 int istype(token_t *t);
 asnode_t *binexp(int ptp);
-asnode_t *mknode(token_t *token, asnode_t *left, asnode_t *right);
-
-int interpret(asnode_t *root);
+asnode_t *mknode(token_t *token, asnode_t *left, asnode_t *mid, asnode_t *right);
 
 #endif

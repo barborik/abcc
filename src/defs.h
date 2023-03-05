@@ -61,6 +61,12 @@ enum
     T_I64, // signed 64bit integer (long)
     T_TEND,
 
+    // block statements
+    BLOCK_START,
+    T_IF,    // if statement
+    T_WHILE, // while loop
+    BLOCK_END,
+
     // other
     T_ASSIGN,    // =
     T_SEMICOLON, // ;
@@ -70,7 +76,6 @@ enum
     T_JOIN,      // token for holding asnodes together
 
     // TODO: sort these
-    T_IF,     // if statement
     T_LPAR,   // (
     T_RPAR,   // )
     T_LBRACE, // {

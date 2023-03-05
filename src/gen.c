@@ -3,6 +3,7 @@
 FILE *asmf;
 
 int regalloc[] = {0, 0, 0, 0};
+int label = 1;
 
 int ralloc()
 {
@@ -90,6 +91,26 @@ int asm_storeglob(int reg, sym_t *sym)
     return reg;
 }
 
+void asm_label(int l)
+{
+    fprintf(asmf, "L%d:\n", l);
+}
+
+void asm_cmp(int reg)
+{
+    fprintf(asmf, "\tcmp\t\t%s, 0\n", reglist[reg]);
+}
+
+void asm_jumpeq(int l)
+{
+    fprintf(asmf, "\tje\t\tL%d\n", l);
+}
+
+void asm_jump(int l)
+{
+    fprintf(asmf, "\tjmp\t\tL%d\n", l);
+}
+
 void asm_preamble()
 {
     // externs, globals etc.
@@ -132,13 +153,15 @@ void asm_postamble()
 
 int gen(asnode_t *root, int reg)
 {
+    int start, end;
     int leftreg = NULLREG, rightreg = NULLREG;
 
-    if (root->token->token != T_JOIN)
+    int t = root->token->token;
+    if (t != T_JOIN && (t < BLOCK_START || t > BLOCK_END))
     {
         if (root->left)
         {
-            leftreg = gen(root->left, -1);
+            leftreg = gen(root->left, NULLREG);
         }
         if (root->right)
         {
@@ -169,6 +192,25 @@ int gen(asnode_t *root, int reg)
         rfree_all();
         gen(root->right, NULLREG);
         rfree_all();
+        return NULLREG;
+    case T_IF:
+        rightreg = gen(root->mid, NULLREG);
+        asm_cmp(rightreg);
+        end = label++;
+        asm_jumpeq(end);
+        if (root->left) gen(root->left, NULLREG);
+        asm_label(end);
+        return NULLREG;
+    case T_WHILE:
+        start = label++;
+        asm_label(start);
+        rightreg = gen(root->mid, NULLREG);
+        asm_cmp(rightreg);
+        end = label++;
+        asm_jumpeq(end);
+        if (root->left) gen(root->left, NULLREG);
+        asm_jump(start);
+        asm_label(end);
         return NULLREG;
     default:
         printf("ERROR: unknown operator %d\n", root->token->token);

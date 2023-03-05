@@ -25,7 +25,8 @@ int main(int argc, char *argv[])
     {
         printf("token: %d\n", t->token);
     }*/
-    stmt();
+    asnode_t *root = stmt();
+    gen(root, NULLREG);
 
     asm_postamble();
 

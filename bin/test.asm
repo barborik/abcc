@@ -17,6 +17,14 @@ printint:
 	ret
 
 main:
+	mov		rax, 1
+	mov		[abc], rax
+L1:
+	mov		rax, 1
+	cmp		rax, 0
+	je		L2
+	jmp		L1
+L2:
 
 	call printint
 	mov		rsi, 0

@@ -144,6 +144,12 @@ void keyword(token_t *t)
         return;
     }
 
+    if (!strcmp(kword, "while"))
+    {
+        t->token = T_WHILE;
+        return;
+    }
+
     t->token = T_IDENT;
     if (findglob(kword) < 0)
     {
@@ -192,10 +198,10 @@ int scan(token_t *t)
         t->token = T_SEMICOLON;
         break;
     case '(':
-        t->token = T_RPAR;
+        t->token = T_LPAR;
         break;
     case ')':
-        t->token = T_LPAR;
+        t->token = T_RPAR;
         break;
     case '{':
         t->token = T_LBRACE;
