@@ -33,11 +33,15 @@ WINDOWS - integer or pointer | rcx   | rdx    | r8    | r9     | stack
 
 // register list
 // https://en.wikibooks.org/wiki/X86_Assembly/X86_Architecture
-static char *reglist[] = {"rax", "rbx", "rcx", "rdx"};
+static char *reglist64[] = {"rax", "rbx", "rcx", "rdx"};
+static char *reglist32[] = {"eax", "ebx", "ecx", "edx"};
+static char *reglist16[] = {"ax", "bx", "cx", "dx"};
+static char *reglist8[] = {"al", "bl", "cl", "dl"};
+static char **reglist = reglist64;
 
 // operator precedence table
-//                         +  -  *  /        LITINT
-static int prec[] = {NULL, 1, 1, 2, 2, NULL, 0};
+//                         +  -  *  /  == != >  <  >= <=       INTLIT
+static int prec[] = {NULL, 1, 1, 2, 2, 4, 4, 3, 3, 3, 3, NULL, 0};
 
 enum
 {
@@ -47,7 +51,12 @@ enum
     T_MINUS,    // -
     T_ASTERISK, // *
     T_FSLASH,   // /
-    T_EQUALS,   // ==
+    T_EQ,       // ==
+    T_NE,       // !=
+    T_GT,       // >
+    T_LT,       // <
+    T_GE,       // >=
+    T_LE,       // <=
     T_OPEND,
 
     // literals

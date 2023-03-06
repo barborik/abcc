@@ -182,12 +182,35 @@ int scan(token_t *t)
     case '/':
         t->token = T_FSLASH;
         break;
+    case '>':
+        if (fgetc(srcf) == '=')
+        {
+            t->token = T_GE;
+            break;
+        }
+        fseek(srcf, -1, SEEK_CUR);
+
+        t->token = T_GT;
+        break;
+    case '<':
+        if (fgetc(srcf) == '=')
+        {
+            t->token = T_LE;
+            break;
+        }
+        fseek(srcf, -1, SEEK_CUR);
+
+        t->token = T_LT;
+        break;
+    case '!':
+        t->token = T_NE;
+        break;
 
     // other
     case '=':
         if (fgetc(srcf) == '=')
         {
-            t->token = T_EQUALS;
+            t->token = T_EQ;
             break;
         }
         fseek(srcf, -1, SEEK_CUR);

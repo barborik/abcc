@@ -96,7 +96,15 @@ void asm_label(int l)
     fprintf(asmf, "L%d:\n", l);
 }
 
-void asm_cmp(int reg)
+int asm_cmpset(int reg0, int reg1, char *ins)
+{
+    fprintf(asmf, "\tcmp\t\t%s, %s\n", reglist[reg0], reglist[reg1]);
+    fprintf(asmf, "\t%s\t\t%s\n", ins, reglist8[reg0]);
+    fprintf(asmf, "\tand\t\t%s, 0xff\n", reglist[reg0]);
+    return reg0;
+}
+
+void asm_cmpz(int reg)
 {
     fprintf(asmf, "\tcmp\t\t%s, 0\n", reglist[reg]);
 }
@@ -133,7 +141,7 @@ void asm_preamble()
             "format:\n"
             "\tdb\t\t\"%%d\", 10, 0\n"
             "printint:\n"
-            "\tmov\t\trsi, rax\n"
+            "\tmov\t\trsi, [abc]\n"
             "\tmov\t\trdi, format\n"
             "\tsub\t\trsp, 32\n"
             "\tcall\tprintf\n"
@@ -193,9 +201,21 @@ int gen(asnode_t *root, int reg)
         gen(root->right, NULLREG);
         rfree_all();
         return NULLREG;
+    case T_EQ:
+        return asm_cmpset(leftreg, rightreg, "sete");
+    case T_NE:
+        return asm_cmpset(leftreg, rightreg, "setne");
+    case T_GT:
+        return asm_cmpset(leftreg, rightreg, "setg");
+    case T_LT:
+        return asm_cmpset(leftreg, rightreg, "setl");
+    case T_GE:
+        return asm_cmpset(leftreg, rightreg, "setge");
+    case T_LE:
+        return asm_cmpset(leftreg, rightreg, "setle");
     case T_IF:
         rightreg = gen(root->mid, NULLREG);
-        asm_cmp(rightreg);
+        asm_cmpz(rightreg);
         end = label++;
         asm_jumpeq(end);
         if (root->left) gen(root->left, NULLREG);
@@ -205,7 +225,7 @@ int gen(asnode_t *root, int reg)
         start = label++;
         asm_label(start);
         rightreg = gen(root->mid, NULLREG);
-        asm_cmp(rightreg);
+        asm_cmpz(rightreg);
         end = label++;
         asm_jumpeq(end);
         if (root->left) gen(root->left, NULLREG);
