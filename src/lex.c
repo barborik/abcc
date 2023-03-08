@@ -205,7 +205,8 @@ int scan(token_t *t)
     case '!':
         t->token = T_NE;
         break;
-
+    case '&':
+        t->token = T_AMP;
     // other
     case '=':
         if (fgetc(srcf) == '=')

@@ -19,18 +19,22 @@ printint:
 main:
 	mov		rax, 1
 	mov		[abc], rax
-L1:
 	mov	rax, [abc]
-	mov		rbx, 10
-	cmp		rax, rbx
-	setl		al
-	and		rax, 0xff
-	cmp		rax, 0
+	mov		rbx, 1
+	add		rax, rbx
+	mov		[abc], rax
+L1:
+	mov	rbx, [abc]
+	mov		rcx, 10
+	cmp		rbx, rcx
+	setl		bl
+	and		rbx, 0xff
+	cmp		rbx, 0
 	je		L2
-	mov	rcx, [abc]
-	mov		rdx, 1
-	add		rcx, rdx
-	mov		[abc], rcx
+	mov	rdx, [abc]
+	mov		(null), 1
+	add		rdx, (null)
+	mov		[abc], rdx
 	jmp		L1
 L2:
 

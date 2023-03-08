@@ -7,12 +7,13 @@ asnode_t *assign_stmt()
 
     // ident
     next(&t);
-    t->token = T_LVIDENT;
+    t->token = ST_LVIDENT;
     right = mknode(t, NULL, NULL, NULL);
 
     // equals sign + right side of the statement
     next(&t);
     left = binexp(0);
+
     root = mknode(t, left, NULL, right);
 
     // gen(root, -1);
@@ -25,12 +26,13 @@ asnode_t *assign_stmt()
     return root;
 }
 
-asnode_t *if_stmt()
+asnode_t *cond_stmt()
 {
     token_t *t;
     asnode_t *root, *left, *mid, *right;
 
-    next(&t); // if
+    next(&t); // if or while
+    t->token = stmt2tok(t->token);
     root = mknode(t, NULL, NULL, NULL);
     next(&t);        // (
     mid = binexp(0); // condition
@@ -48,7 +50,7 @@ asnode_t *stmt()
     asnode_t *right, *root = NULL;
 
     token_t *join = malloc(sizeof(token_t));
-    join->token = T_JOIN;
+    join->token = ST_JOIN;
 
     next(&t);
 
@@ -66,10 +68,10 @@ asnode_t *stmt()
             right = assign_stmt();
             break;
         case T_IF:
-            right = if_stmt();
+            right = cond_stmt();
             break;
         case T_WHILE:
-            right = if_stmt();
+            right = cond_stmt();
             break;
         case T_RBRACE:
             next(&t);

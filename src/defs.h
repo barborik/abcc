@@ -40,13 +40,22 @@ static char *reglist8[] = {"al", "bl", "cl", "dl"};
 static char **reglist = reglist64;
 
 // operator precedence table
-//                         +  -  *  /  == != >  <  >= <=       INTLIT
-static int prec[] = {NULL, 1, 1, 2, 2, 4, 4, 3, 3, 3, 3, NULL, 0};
+static int prec[] = {
+    /*
+    +  -  *  /  == != >  <  >= <= &  |  ! */
+    1, 1, 2, 2, 4, 4, 3, 3, 3, 3, 1, 1, 1,
+    1, // REF &
+    1, // DEREF *
+    0  // INTLIT
+};
 
 enum
 {
-    // operators
-    T_OPSTART,  // start and end pseudo-tokens for comparing ranges, if token is between T_OPSTART and T_OPEND then it is an operator
+    /*
+    start and end pseudo-tokens for comparing ranges,
+    if token is between T_OPSTART and T_OPEND then it is an operator
+    */
+    OP_START,
     T_PLUS,     // +
     T_MINUS,    // -
     T_ASTERISK, // *
@@ -57,20 +66,43 @@ enum
     T_LT,       // <
     T_GE,       // >=
     T_LE,       // <=
-    T_OPEND,
+    T_AMP,      // &
+    T_PIPE,     // |
+    T_EXCL,     // !
+    OP_END,
 
-    // literals
+    LIT_START,
     T_INTLIT, // integer literal
+    LIT_END,
 
-    // types
-    T_TSTART,
+    TYPE_START,
+    T_I0, // void
+    T_U0, // void
+
     T_I8,  // signed 8bit integer  (char)
     T_I16, // signed 16bit integer (short)
     T_I32, // signed 32bit integer (int)
     T_I64, // signed 64bit integer (long)
-    T_TEND,
 
-    // block statements
+    T_U8,  // unsigned 8bit integer  (unsigned char)
+    T_U16, // unsigned 16bit integer (unsigned short)
+    T_U32, // unsigned 32bit integer (unsigned int)
+    T_U64, // unsigned 64bit integer (unsigned long)
+
+    T_I0PTR,
+    T_U0PTR,
+
+    T_I8PTR,
+    T_I16PTR,
+    T_I32PTR,
+    T_I64PTR,
+
+    T_U8PTR,
+    T_U16PTR,
+    T_U32PTR,
+    T_U64PTR,
+    TYPE_END,
+
     BLOCK_START,
     T_IF,    // if statement
     T_WHILE, // while loop
@@ -80,15 +112,50 @@ enum
     T_ASSIGN,    // =
     T_SEMICOLON, // ;
     T_IDENT,     // identifier
-    T_LVIDENT,   // left value ident
-    T_RVIDENT,   // right value ident
-    T_JOIN,      // token for holding asnodes together
 
     // TODO: sort these
     T_LPAR,   // (
     T_RPAR,   // )
     T_LBRACE, // {
     T_RBRACE, // }
+};
+
+enum
+{
+    /* === OPERATORS === */
+    // binary
+    ST_ADD, // +
+    ST_SUB, // -
+    ST_MUL, // *
+    ST_DIV, // /
+    ST_EQ,  // ==
+    ST_NE,  // !=
+    ST_GT,  // >
+    ST_LT,  // <
+    ST_GE,  // >=
+    ST_LE,  // <=
+    ST_AND, // &
+    ST_OR,  // |
+
+    // unary
+    ST_NOT,   // !
+    ST_ADDR,  // &
+    ST_DEREF, // *
+
+    /* === LITERALS === */
+    ST_INTLIT,
+
+    /* === BLOCK STATEMENTS === */
+    ST_IF,
+    ST_WHILE,
+
+    // other
+    ST_ASSIGN,    // =
+    ST_SEMICOLON, // ;
+    ST_IDENT,     // identifier
+    ST_LVIDENT,   // left value ident
+    ST_RVIDENT,   // right value ident
+    ST_JOIN,      // token for holding asnodes together
 };
 
 #endif

@@ -165,7 +165,7 @@ int gen(asnode_t *root, int reg)
     int leftreg = NULLREG, rightreg = NULLREG;
 
     int t = root->token->token;
-    if (t != T_JOIN && (t < BLOCK_START || t > BLOCK_END))
+    if (t != ST_JOIN && (t < BLOCK_START || t > BLOCK_END))
     {
         if (root->left)
         {
@@ -179,41 +179,41 @@ int gen(asnode_t *root, int reg)
 
     switch (root->token->token)
     {
-    case T_PLUS:
+    case ST_ADD:
         return asm_add(leftreg, rightreg);
-    case T_MINUS:
+    case ST_SUB:
         return asm_sub(leftreg, rightreg);
-    case T_ASTERISK:
+    case ST_MUL:
         return asm_mul(leftreg, rightreg);
-    case T_FSLASH:
+    case ST_DIV:
         return asm_div(leftreg, rightreg);
-    case T_INTLIT:
+    case ST_INTLIT:
         return asm_load(root->token->value.i);
-    case T_IDENT:
+    case ST_IDENT:
         return asm_loadglob(glob->get[root->token->value.id]);
-    case T_LVIDENT:
+    case ST_LVIDENT:
         return asm_storeglob(reg, glob->get[root->token->value.id]);
     case T_ASSIGN:
         return rightreg;
-    case T_JOIN:
+    case ST_JOIN:
         gen(root->left, NULLREG);
         rfree_all();
         gen(root->right, NULLREG);
         rfree_all();
         return NULLREG;
-    case T_EQ:
+    case ST_EQ:
         return asm_cmpset(leftreg, rightreg, "sete");
-    case T_NE:
+    case ST_NE:
         return asm_cmpset(leftreg, rightreg, "setne");
-    case T_GT:
+    case ST_GT:
         return asm_cmpset(leftreg, rightreg, "setg");
-    case T_LT:
+    case ST_LT:
         return asm_cmpset(leftreg, rightreg, "setl");
-    case T_GE:
+    case ST_GE:
         return asm_cmpset(leftreg, rightreg, "setge");
-    case T_LE:
+    case ST_LE:
         return asm_cmpset(leftreg, rightreg, "setle");
-    case T_IF:
+    case ST_IF:
         rightreg = gen(root->mid, NULLREG);
         asm_cmpz(rightreg);
         end = label++;
@@ -221,7 +221,7 @@ int gen(asnode_t *root, int reg)
         if (root->left) gen(root->left, NULLREG);
         asm_label(end);
         return NULLREG;
-    case T_WHILE:
+    case ST_WHILE:
         start = label++;
         asm_label(start);
         rightreg = gen(root->mid, NULLREG);
