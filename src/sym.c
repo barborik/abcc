@@ -23,7 +23,7 @@ int findglob(char *name)
 }
 
 // adds a global symbol to the table
-void addglob(int type, char *name)
+void addglob(char *name)
 {
     if (!glob)
     {
@@ -35,7 +35,6 @@ void addglob(int type, char *name)
     strcpy(final, name);
 
     sym_t sym;
-    sym.type = type;
     sym.name = final;
 
     dl_add(glob, &sym);

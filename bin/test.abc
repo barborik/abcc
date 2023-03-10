@@ -1,11 +1,6 @@
 {
 
-I64 abc;
+U32 abc;
 abc = 1;
-
-while (abc < 10)
-{
-    abc = abc + 1;
-}
 
 }

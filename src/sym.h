@@ -10,6 +10,6 @@ typedef struct
 } sym_t;
 
 int findglob(char *name);
-void addglob(int type, char *name);
+void addglob(char *name);
 
 #endif

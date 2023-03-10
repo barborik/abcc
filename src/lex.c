@@ -113,47 +113,17 @@ void keyword(token_t *t)
     fseek(srcf, -1, SEEK_CUR);
     kword[i] = 0;
 
-    // match the keyword
-    if (!strcmp(kword, "I8"))
+    // try to match the keyword
+    if (match(kword, t))
     {
-        t->token = T_I8;
         return;
     }
 
-    if (!strcmp(kword, "I16"))
-    {
-        t->token = T_I16;
-        return;
-    }
-
-    if (!strcmp(kword, "I32"))
-    {
-        t->token = T_I32;
-        return;
-    }
-
-    if (!strcmp(kword, "I64"))
-    {
-        t->token = T_I64;
-        return;
-    }
-
-    if (!strcmp(kword, "if"))
-    {
-        t->token = T_IF;
-        return;
-    }
-
-    if (!strcmp(kword, "while"))
-    {
-        t->token = T_WHILE;
-        return;
-    }
-
+    // no match found, store it as an identifier
     t->token = T_IDENT;
     if (findglob(kword) < 0)
     {
-        addglob(last, kword);
+        addglob(kword);
     }
     t->value.id = findglob(kword);
     return;
@@ -203,10 +173,38 @@ int scan(token_t *t)
         t->token = T_LT;
         break;
     case '!':
-        t->token = T_NE;
+        if (fgetc(srcf) == '=')
+        {
+            t->token = T_NE;
+            break;
+        }
+        fseek(srcf, -1, SEEK_CUR);
+
+        t->token = T_EXCL;
+        break;
+    case '~':
+        t->token = T_TILDA;
         break;
     case '&':
+        if (fgetc(srcf) == '&')
+        {
+            t->token = T_DAMP;
+            break;
+        }
+        fseek(srcf, -1, SEEK_CUR);
+
         t->token = T_AMP;
+        break;
+    case '|':
+        if (fgetc(srcf) == '|')
+        {
+            t->token = T_DPIPE;
+            break;
+        }
+        fseek(srcf, -1, SEEK_CUR);
+
+        t->token = T_PIPE;
+        break;
     // other
     case '=':
         if (fgetc(srcf) == '=')

@@ -32,7 +32,7 @@ asnode_t *cond_stmt()
     asnode_t *root, *left, *mid, *right;
 
     next(&t); // if or while
-    t->token = stmt2tok(t->token);
+    stm2stx(t);
     root = mknode(t, NULL, NULL, NULL);
     next(&t);        // (
     mid = binexp(0); // condition
@@ -61,7 +61,16 @@ asnode_t *stmt()
 
         switch (t->token)
         {
+        case T_I0:
+        case T_I8:
+        case T_I16:
+        case T_I32:
         case T_I64:
+        case T_U0:
+        case T_U8:
+        case T_U16:
+        case T_U32:
+        case T_U64:
             var_decl();
             break;
         case T_IDENT:

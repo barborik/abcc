@@ -49,13 +49,14 @@ static int prec[] = {
     0  // INTLIT
 };
 
+// tokens
 enum
 {
     /*
     start and end pseudo-tokens for comparing ranges,
     if token is between T_OPSTART and T_OPEND then it is an operator
     */
-    OP_START,
+    T_OP_START,
     T_PLUS,     // +
     T_MINUS,    // -
     T_ASTERISK, // *
@@ -67,15 +68,18 @@ enum
     T_GE,       // >=
     T_LE,       // <=
     T_AMP,      // &
+    T_DAMP,     // &&
     T_PIPE,     // |
+    T_DPIPE,    // ||
     T_EXCL,     // !
-    OP_END,
+    T_TILDA,    // ~
+    T_OP_END,
 
-    LIT_START,
+    T_LIT_START,
     T_INTLIT, // integer literal
-    LIT_END,
+    T_LIT_END,
 
-    TYPE_START,
+    T_TYPE_START,
     T_I0, // void
     T_U0, // void
 
@@ -89,6 +93,7 @@ enum
     T_U32, // unsigned 32bit integer (unsigned int)
     T_U64, // unsigned 64bit integer (unsigned long)
 
+    // pointers
     T_I0PTR,
     T_U0PTR,
 
@@ -101,12 +106,26 @@ enum
     T_U16PTR,
     T_U32PTR,
     T_U64PTR,
-    TYPE_END,
 
-    BLOCK_START,
+    // double pointers
+    T_I0PTRPTR,
+    T_U0PTRPTR,
+
+    T_I8PTRPTR,
+    T_I16PTRPTR,
+    T_I32PTRPTR,
+    T_I64PTRPTR,
+
+    T_U8PTRPTR,
+    T_U16PTRPTR,
+    T_U32PTRPTR,
+    T_U64PTRPTR,
+    T_TYPE_END,
+
+    T_BLOCK_START,
     T_IF,    // if statement
     T_WHILE, // while loop
-    BLOCK_END,
+    T_BLOCK_END,
 
     // other
     T_ASSIGN,    // =
@@ -120,34 +139,44 @@ enum
     T_RBRACE, // }
 };
 
+// sytax tokens
 enum
 {
-    /* === OPERATORS === */
+    /* === OPERATIONS === */
+    ST_OP_START,
     // binary
-    ST_ADD, // +
-    ST_SUB, // -
-    ST_MUL, // *
-    ST_DIV, // /
-    ST_EQ,  // ==
-    ST_NE,  // !=
-    ST_GT,  // >
-    ST_LT,  // <
-    ST_GE,  // >=
-    ST_LE,  // <=
-    ST_AND, // &
-    ST_OR,  // |
+    ST_ADD,    // +
+    ST_SUB,    // -
+    ST_MUL,    // *
+    ST_DIV,    // /
+    ST_EQ,     // ==
+    ST_NE,     // !=
+    ST_GT,     // >
+    ST_LT,     // <
+    ST_GE,     // >=
+    ST_LE,     // <=
+    ST_LOGAND, // &&
+    ST_LOGOR,  // ||
+    ST_BITAND, // &
+    ST_BITOR,  // |
 
     // unary
-    ST_NOT,   // !
-    ST_ADDR,  // &
-    ST_DEREF, // *
+    ST_LOGNOT, // !
+    ST_BITNOT, // ~
+    ST_ADDR,   // &
+    ST_DEREF,  // *
+    ST_OP_END,
 
     /* === LITERALS === */
+    ST_LIT_START,
     ST_INTLIT,
+    ST_LIT_END,
 
     /* === BLOCK STATEMENTS === */
+    ST_BLOCK_START,
     ST_IF,
     ST_WHILE,
+    ST_BLOCK_END,
 
     // other
     ST_ASSIGN,    // =

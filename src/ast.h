@@ -3,6 +3,7 @@
 
 typedef struct asnode
 {
+    int type;
     token_t *token;
     struct asnode *left;
     struct asnode *mid;
@@ -16,6 +17,7 @@ typedef struct
 
 int isop(token_t *t);
 int istype(token_t *t);
+int isblock(token_t *t);
 asnode_t *binexp(int ptp);
 asnode_t *mknode(token_t *token, asnode_t *left, asnode_t *mid, asnode_t *right);
 
