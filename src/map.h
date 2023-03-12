@@ -7,5 +7,6 @@ int stmt2stx(token_t *t);
 
 int val2ptr(token_t *t);
 int ptr2val(token_t *t);
+int ptr2dptr(token_t *t);
 
 #endif

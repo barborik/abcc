@@ -69,8 +69,31 @@ int asm_div(int reg0, int reg1)
 
 int asm_lognot(int reg)
 {
+    int tmp = ralloc();
+    fprintf(asmf, "\txor\t\t%s, %s\n", reglist[tmp], reglist[tmp]);
     fprintf(asmf, "\ttest\t%s, %s\n", reglist[reg], reglist[reg]);
-    fprintf(asmf, "\tsetz\t%s\n", reglist8[reg]);
+    fprintf(asmf, "\tsetz\t%s\n", reglist8[tmp]);
+    fprintf(asmf, "\tmov\t\t%s, %s\n", reglist[reg], reglist[tmp]);
+    rfree(tmp);
+    return reg;
+}
+
+int asm_bitnot(int reg)
+{
+    fprintf(asmf, "\tnot\t\t%s\n", reglist[reg]);
+    return reg;
+}
+
+int asm_addr(sym_t *sym)
+{
+    int reg = ralloc();
+    fprintf(asmf, "\tmov\t\t%s, %s\n", reglist[reg], sym->name);
+    return reg;
+}
+
+int asm_deref(int reg)
+{
+    fprintf(asmf, "\tmov\t\t%s, [%s]\n", reglist[reg], reglist[reg]);
     return reg;
 }
 
@@ -78,42 +101,27 @@ void asm_addglob(sym_t *sym, size_t val)
 {
     char len[4];
 
-    // value types
-    if (sym->type == T_I8)  sprintf(len, "db");
-    if (sym->type == T_I16) sprintf(len, "dw");
-    if (sym->type == T_I32) sprintf(len, "dd");
-    if (sym->type == T_I64) sprintf(len, "dq");
-
-    if (sym->type == T_U8)  sprintf(len, "db");
-    if (sym->type == T_U16) sprintf(len, "dw");
-    if (sym->type == T_U32) sprintf(len, "dd");
-    if (sym->type == T_U64) sprintf(len, "dq");
-
-    // pointers
-    if (sym->type == T_I0PTR)  sprintf(len, "dq");
-    if (sym->type == T_I8PTR)  sprintf(len, "dq");
-    if (sym->type == T_I16PTR) sprintf(len, "dq");
-    if (sym->type == T_I32PTR) sprintf(len, "dq");
-    if (sym->type == T_I64PTR) sprintf(len, "dq");
-
-    if (sym->type == T_U0PTR)  sprintf(len, "dq");
-    if (sym->type == T_U8PTR)  sprintf(len, "dq");
-    if (sym->type == T_U16PTR) sprintf(len, "dq");
-    if (sym->type == T_U32PTR) sprintf(len, "dq");
-    if (sym->type == T_U64PTR) sprintf(len, "dq");
-
-    // double pointers
-    if (sym->type == T_I0PTRPTR)  sprintf(len, "dq");
-    if (sym->type == T_I8PTRPTR)  sprintf(len, "dq");
-    if (sym->type == T_I16PTRPTR) sprintf(len, "dq");
-    if (sym->type == T_I32PTRPTR) sprintf(len, "dq");
-    if (sym->type == T_I64PTRPTR) sprintf(len, "dq");
-
-    if (sym->type == T_U0PTRPTR)  sprintf(len, "dq");
-    if (sym->type == T_U8PTRPTR)  sprintf(len, "dq");
-    if (sym->type == T_U16PTRPTR) sprintf(len, "dq");
-    if (sym->type == T_U32PTRPTR) sprintf(len, "dq");
-    if (sym->type == T_U64PTRPTR) sprintf(len, "dq");
+    switch (sym->type)
+    {
+    case T_I8:
+    case T_U8:
+        sprintf(len, "db");
+        break;
+    case T_I16:
+    case T_U16:
+        sprintf(len, "dw");
+        break;
+    case T_I32:
+    case T_U32:
+        sprintf(len, "dd");
+        break;
+    case T_I64:
+    case T_U64:
+        sprintf(len, "dq");
+        break;
+    default:
+        sprintf(len, "dq");
+    }
 
     fprintf(asmf, "%s:\t\t%s %zu\n", sym->name, len, val);
 }
@@ -159,6 +167,13 @@ void asm_jump(int l)
     fprintf(asmf, "\tjmp\t\tL%d\n", l);
 }
 
+void asm_func(asnode_t *root, sym_t *sym)
+{
+    fprintf(asmf, "%s:\n", sym->name);
+    gen(root, NULLREG, A_EXEC);
+    fprintf(asmf, "\tret\n");
+}
+
 void asm_preamble()
 {
     // externs, globals etc.
@@ -178,8 +193,7 @@ void asm_preamble()
             "\tsub\t\trsp, 32\n"
             "\tcall\tprintf\n"
             "\tadd\t\trsp, 32\n"
-            "\tret\n\n"
-            "main:\n");
+            "\tret\n\n");
 }
 
 void asm_postamble()
@@ -199,21 +213,21 @@ void asm_postamble()
     }
 }
 
-int gen(asnode_t *root, int reg)
+int gen(asnode_t *root, int reg, int cmd)
 {
     int start, end;
     int leftreg = NULLREG, rightreg = NULLREG;
 
     token_t *t = root->token;
-    if (t->token != ST_JOIN && !isblock(t))
+    if (t->token != ST_JOIN && !isblock(t) && cmd == A_EXEC)
     {
         if (root->left)
         {
-            leftreg = gen(root->left, NULLREG);
+            leftreg = gen(root->left, NULLREG, cmd);
         }
         if (root->right)
         {
-            rightreg = gen(root->right, leftreg);
+            rightreg = gen(root->right, leftreg, cmd);
         }
     }
 
@@ -236,9 +250,9 @@ int gen(asnode_t *root, int reg)
     case T_ASSIGN:
         return rightreg;
     case ST_JOIN:
-        gen(root->left, NULLREG);
+        gen(root->left, NULLREG, cmd);
         rfree_all();
-        gen(root->right, NULLREG);
+        gen(root->right, NULLREG, cmd);
         rfree_all();
         return NULLREG;
     case ST_EQ:
@@ -255,29 +269,42 @@ int gen(asnode_t *root, int reg)
         return asm_cmpset(leftreg, rightreg, "setle");
     case ST_LOGNOT:
         return asm_lognot(leftreg);
+    case ST_BITNOT:
+        return asm_bitnot(leftreg);
+    case ST_ADDR:
+        return asm_addr(glob->get[root->left->token->value.id]);
+    case ST_DEREF:
+        return asm_deref(leftreg);
     case ST_IF:
-        rightreg = gen(root->mid, NULLREG);
+        rightreg = gen(root->mid, NULLREG, cmd);
         asm_cmpz(rightreg);
         end = label++;
         asm_jumpeq(end);
         if (root->left)
-            gen(root->left, NULLREG);
+        {
+            gen(root->left, NULLREG, cmd);
+        }
         asm_label(end);
         return NULLREG;
     case ST_WHILE:
         start = label++;
         asm_label(start);
-        rightreg = gen(root->mid, NULLREG);
+        rightreg = gen(root->mid, NULLREG, cmd);
         asm_cmpz(rightreg);
         end = label++;
         asm_jumpeq(end);
         if (root->left)
-            gen(root->left, NULLREG);
+        {
+            gen(root->left, NULLREG, cmd);
+        }
         asm_jump(start);
         asm_label(end);
         return NULLREG;
+    case ST_FUNC:
+        asm_func(root->left, glob->get[root->token->value.id]);
+        return NULLREG;
     default:
-        printf("ERROR: unknown operator %d\n", root->token->token);
+        printf("ERROR: unknown token %d on line %d\n", root->token->token, root->token->line);
         exit(1);
     }
 }

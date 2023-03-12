@@ -88,7 +88,7 @@ int un2stx(token_t *t)
     return 1;
 }
 
-int stm2stx(token_t *t)
+int stmt2stx(token_t *t)
 {
     switch (t->token)
     {
@@ -182,6 +182,47 @@ int ptr2val(token_t *t)
         break;
     case T_U64PTR:
         t->token = T_U64;
+        break;
+    default:
+        return 0;
+    }
+
+    return 1;
+}
+
+int ptr2dptr(token_t *t)
+{
+    switch (t->token)
+    {
+    case T_I0PTR:
+        t->token = T_I0PTRPTR;
+        break;
+    case T_I8PTR:
+        t->token = T_I8PTRPTR;
+        break;
+    case T_I16PTR:
+        t->token = T_I16PTRPTR;
+        break;
+    case T_I32PTR:
+        t->token = T_I32PTRPTR;
+        break;
+    case T_I64PTR:
+        t->token = T_I64PTRPTR;
+        break;
+    case T_U0PTR:
+        t->token = T_U0PTRPTR;
+        break;
+    case T_U8PTR:
+        t->token = T_U8PTRPTR;
+        break;
+    case T_U16PTR:
+        t->token = T_U16PTRPTR;
+        break;
+    case T_U32PTR:
+        t->token = T_U32PTRPTR;
+        break;
+    case T_U64PTR:
+        t->token = T_U64PTRPTR;
         break;
     default:
         return 0;

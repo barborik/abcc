@@ -1,7 +1,6 @@
 #include "includes.h"
 
-int line;
-int last;
+int line = 1;
 FILE *srcf;
 dlist_t *tokens;
 size_t tindex = 0;
@@ -255,7 +254,6 @@ void lex()
     token_t t;
     while (scan(&t))
     {
-        last = t.token;
         dl_add(tokens, &t);
     }
 }

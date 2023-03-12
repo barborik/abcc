@@ -34,6 +34,36 @@ int istype(token_t *t)
     return 0;
 }
 
+// checks if a given token is a value type token
+int isvaltype(token_t *t)
+{
+    if (t->token > T_TYPE_VAL_START && t->token < T_TYPE_VAL_END)
+    {
+        return 1;
+    }
+    return 0;
+}
+
+// checks if a given token is a pointer token
+int isptr(token_t *t)
+{
+    if (t->token > T_TYPE_PTR_START && t->token < T_TYPE_PTR_END)
+    {
+        return 1;
+    }
+    return 0;
+}
+
+// checks if a given token is a double pointer token
+int isdptr(token_t *t)
+{
+    if (t->token > T_TYPE_DPTR_START && t->token < T_TYPE_DPTR_END)
+    {
+        return 1;
+    }
+    return 0;
+}
+
 // checks if a given token is a literal token
 int isliteral(token_t *t)
 {

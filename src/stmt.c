@@ -32,19 +32,23 @@ asnode_t *cond_stmt()
     asnode_t *root, *left, *mid, *right;
 
     next(&t); // if or while
-    stm2stx(t);
+    stmt2stx(t);
     root = mknode(t, NULL, NULL, NULL);
     next(&t);        // (
     mid = binexp(0); // condition
     next(&t);        // )
-    left = stmt();
+    left = block_stmt();
 
     root->mid = mid;
     root->left = left;
     return root;
 }
 
-asnode_t *stmt()
+/*asnode_t *stmt()
+{
+}*/
+
+asnode_t *block_stmt()
 {
     token_t *t;
     asnode_t *right, *root = NULL;

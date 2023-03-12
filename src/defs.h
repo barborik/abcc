@@ -80,6 +80,8 @@ enum
     T_LIT_END,
 
     T_TYPE_START,
+    // value types
+    T_TYPE_VAL_START,
     T_I0, // void
     T_U0, // void
 
@@ -92,8 +94,10 @@ enum
     T_U16, // unsigned 16bit integer (unsigned short)
     T_U32, // unsigned 32bit integer (unsigned int)
     T_U64, // unsigned 64bit integer (unsigned long)
+    T_TYPE_VAL_END,
 
     // pointers
+    T_TYPE_PTR_START,
     T_I0PTR,
     T_U0PTR,
 
@@ -106,8 +110,10 @@ enum
     T_U16PTR,
     T_U32PTR,
     T_U64PTR,
+    T_TYPE_PTR_END,
 
     // double pointers
+    T_TYPE_DPTR_START,
     T_I0PTRPTR,
     T_U0PTRPTR,
 
@@ -120,6 +126,7 @@ enum
     T_U16PTRPTR,
     T_U32PTRPTR,
     T_U64PTRPTR,
+    T_TYPE_DPTR_END,
     T_TYPE_END,
 
     T_BLOCK_START,
@@ -185,6 +192,7 @@ enum
     ST_LVIDENT,   // left value ident
     ST_RVIDENT,   // right value ident
     ST_JOIN,      // token for holding asnodes together
+    ST_FUNC,      // function (or procedure)
 };
 
 #endif

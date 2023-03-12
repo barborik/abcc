@@ -17,6 +17,11 @@ printint:
 main:
 	mov		rax, 1
 	mov		[abc], rax
+	ret
+test:
+	mov		rbx, 2
+	mov		[abc], rbx
+	ret
 
 	call printint
 	mov		rsi, 0
@@ -24,4 +29,6 @@ main:
 	call	exit
 
 	section .bss
-abc:		dd 0
+main:		dd 0
+abc:		dq 0
+test:		dd 0
