@@ -42,9 +42,8 @@ void var_decl()
     sym->type = type->token;
 }
 
-asnode_t *func_decl()
+void func_decl()
 {
-    asnode_t *root;
     token_t *type, *ident, *t;
 
     next(&type); // data type
@@ -56,12 +55,12 @@ asnode_t *func_decl()
 
     sym_t *sym = glob->get[ident->value.id];
     sym->type = type->token;
+    sym->func = 1;
     ident->token = ST_FUNC;
 
     next(&t); // (
     next(&t); // U0
     next(&t); // )
 
-    root = block_stmt();
-    return mknode(ident, root, NULL, NULL);
+    sym->root = mknode(ident, block_stmt(), NULL, NULL);
 }

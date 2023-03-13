@@ -97,33 +97,33 @@ int asm_deref(int reg)
     return reg;
 }
 
-void asm_addglob(sym_t *sym, size_t val)
+void asm_addglob(sym_t *sym)
 {
-    char len[4];
+    char len[8];
 
     switch (sym->type)
     {
     case T_I8:
     case T_U8:
-        sprintf(len, "db");
+        sprintf(len, "resb");
         break;
     case T_I16:
     case T_U16:
-        sprintf(len, "dw");
+        sprintf(len, "resw");
         break;
     case T_I32:
     case T_U32:
-        sprintf(len, "dd");
+        sprintf(len, "resd");
         break;
     case T_I64:
     case T_U64:
-        sprintf(len, "dq");
+        sprintf(len, "resq");
         break;
     default:
-        sprintf(len, "dq");
+        sprintf(len, "resq");
     }
 
-    fprintf(asmf, "%s:\t\t%s %zu\n", sym->name, len, val);
+    fprintf(asmf, "%s:\t\t\t\t%s 1\n", sym->name, len);
 }
 
 int asm_loadglob(sym_t *sym)
@@ -171,7 +171,18 @@ void asm_func(asnode_t *root, sym_t *sym)
 {
     fprintf(asmf, "%s:\n", sym->name);
     gen(root, NULLREG, A_EXEC);
-    fprintf(asmf, "\tret\n");
+
+    if (!strcmp(sym->name, "main"))
+    {
+        fprintf(asmf,
+                "\tmov\t\trsi, 0\n"
+                "\tsub\t\trsp, 32\n"
+                "\tcall\texit\n\n");
+    }
+    else
+    {
+        fprintf(asmf, "\tret\n");
+    }
 }
 
 void asm_preamble()
@@ -179,37 +190,24 @@ void asm_preamble()
     // externs, globals etc.
     fprintf(asmf,
             "\tglobal  main\n"
-            "\textern  printf\n"
             "\textern  exit\n\n");
 
     // text section
-    fprintf(asmf,
-            "\n\tsection .text\n"
-            "format:\n"
-            "\tdb\t\t\"%%zu\", 10, 0\n"
-            "printint:\n"
-            "\tmov\t\trsi, [abc]\n"
-            "\tmov\t\trdi, format\n"
-            "\tsub\t\trsp, 32\n"
-            "\tcall\tprintf\n"
-            "\tadd\t\trsp, 32\n"
-            "\tret\n\n");
+    fprintf(asmf, "\tsection .text\n");
 }
 
 void asm_postamble()
 {
-    fprintf(asmf,
-            "\n\tcall printint\n"
-            "\tmov\t\trsi, 0\n"
-            "\tsub\t\trsp, 32\n"
-            "\tcall\texit\n\n");
-
     // bss section
     fprintf(asmf,
-            "\tsection .bss\n");
+            "\n\tsection .bss\n");
     for (size_t i = 0; glob && i < glob->used; i++)
     {
-        asm_addglob(glob->get[i], 0);
+        sym_t *sym = glob->get[i];
+        if (!sym->func)
+        {
+            asm_addglob(sym);
+        }
     }
 }
 

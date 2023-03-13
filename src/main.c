@@ -29,12 +29,38 @@ int main(int argc, char *argv[])
     // asnode_t *root = stmt();
     // gen(root, NULLREG);
     token_t *t;
-    asnode_t *root;
     while (next(&t))
     {
         back();
-        root = func_decl();
-        gen(root, NULLREG, A_WALK);
+        func_decl();
+    }
+
+    // find main and generate it
+    int skip;
+    for (int i = 0; i < glob->used; i++)
+    {
+        sym_t *sym = glob->get[i];
+        if (!strcmp(sym->name, "main"))
+        {
+            skip = i;
+            gen(sym->root, NULLREG, A_WALK);
+            break;
+        }
+    }
+
+    // generate the rest
+    for (int i = 0; i < glob->used; i++)
+    {
+        if (i == skip)
+        {
+            continue;
+        }
+
+        sym_t *sym = glob->get[i];
+        if (sym->func)
+        {
+            gen(sym->root, NULLREG, A_WALK);
+        }
     }
 
     asm_postamble();

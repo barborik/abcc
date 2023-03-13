@@ -5,7 +5,9 @@ extern dlist_t *glob;
 
 typedef struct
 {
-    int type;
+    int type;       // data type
+    int func;       // bool -> is function
+    asnode_t *root; // root of the function ast
     char *name;
 } sym_t;
 

@@ -10,11 +10,6 @@ typedef struct asnode
     struct asnode *right;
 } asnode_t;
 
-typedef struct
-{
-    asnode_t *root;
-} astree_t;
-
 int isop(token_t *t);
 int istype(token_t *t);
 int isvaltype(token_t *t);

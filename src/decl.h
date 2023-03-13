@@ -2,6 +2,6 @@
 #define __DECL_
 
 void var_decl();
-asnode_t *func_decl();
+void func_decl();
 
 #endif

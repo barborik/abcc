@@ -1,34 +1,22 @@
 	global  main
-	extern  printf
 	extern  exit
 
-
 	section .text
-format:
-	db		"%zu", 10, 0
-printint:
-	mov		rsi, [abc]
-	mov		rdi, format
-	sub		rsp, 32
-	call	printf
-	add		rsp, 32
-	ret
-
 main:
 	mov		rax, 1
-	mov		[abc], rax
-	ret
-test:
-	mov		rbx, 2
-	mov		[abc], rbx
-	ret
-
-	call printint
+	mov		[abc_], rax
 	mov		rsi, 0
 	sub		rsp, 32
 	call	exit
 
+test_:
+	mov		rbx, 2
+	mov		[abc_], rbx
+	ret
+test2_:
+	mov		rcx, 3
+	mov		[abc_], rcx
+	ret
+
 	section .bss
-main:		dd 0
-abc:		dq 0
-test:		dd 0
+abc_:				resq 1

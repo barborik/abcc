@@ -8,10 +8,10 @@
 
 #include "dlist.h"
 #include "defs.h"
-#include "sym.h"
 #include "lex.h"
-#include "kword.h"
 #include "ast.h"
+#include "sym.h"
+#include "kword.h"
 #include "gen.h"
 #include "stmt.h"
 #include "decl.h"

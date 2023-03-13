@@ -13,7 +13,8 @@ int findglob(char *name)
 
     for (int i = 0; i < glob->used; i++)
     {
-        if (!strcmp(name, ((sym_t *)glob->get[i])->name))
+        sym_t *sym = glob->get[i];
+        if (!strncmp(name, sym->name, strlen(name)))
         {
             return i;
         }
@@ -22,7 +23,7 @@ int findglob(char *name)
     return -1;
 }
 
-// adds a global symbol to the table
+// adds a global symbol to the table and returns the assigned id
 void addglob(char *name)
 {
     if (!glob)
@@ -31,10 +32,17 @@ void addglob(char *name)
         dl_init(glob, sizeof(sym_t));
     }
 
-    char *final = malloc(strlen(name) * sizeof(char) + 1);
+    char *final = malloc((strlen(name) + 2) * sizeof(char));
     strcpy(final, name);
 
+    if (strcmp(name, "main"))
+    {
+        final[strlen(name) * sizeof(char)] = '_';
+        final[(strlen(name) + 1) * sizeof(char)] = 0;
+    }
+
     sym_t sym;
+    sym.func = 0;
     sym.name = final;
 
     dl_add(glob, &sym);

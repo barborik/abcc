@@ -1,10 +1,15 @@
+I32 test(U0)
+{
+    abc = 2;
+}
+
 I32 main(U0)
 {
     U64 abc;
     abc = 1;
 }
 
-I32 test(U0)
+I32 test2(U0)
 {
-    abc = 2;
+    abc = 3;
 }
