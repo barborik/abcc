@@ -134,16 +134,17 @@ enum
     T_WHILE, // while loop
     T_BLOCK_END,
 
-    // other
+    // TODO: sort these
+    T_RETURN,    // return
     T_ASSIGN,    // =
     T_SEMICOLON, // ;
     T_IDENT,     // identifier
-
-    // TODO: sort these
-    T_LPAR,   // (
-    T_RPAR,   // )
-    T_LBRACE, // {
-    T_RBRACE, // }
+    T_LPAR,      // (
+    T_RPAR,      // )
+    T_LBRACE,    // {
+    T_RBRACE,    // }
+    T_COMMA,     // ,
+    T_DOT,       // .
 };
 
 // sytax tokens
@@ -186,6 +187,7 @@ enum
     ST_BLOCK_END,
 
     // other
+    ST_RETURN,    // return
     ST_ASSIGN,    // =
     ST_SEMICOLON, // ;
     ST_IDENT,     // identifier
@@ -193,6 +195,7 @@ enum
     ST_RVIDENT,   // right value ident
     ST_JOIN,      // token for holding asnodes together
     ST_FUNC,      // function (or procedure)
+    ST_CALL,      // function call
 };
 
 #endif

@@ -12,7 +12,7 @@ typedef struct
         int i;
         int id;
         float f;
-    } value;
+    } val;
     int line;
 } token_t;
 

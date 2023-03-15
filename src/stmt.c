@@ -8,6 +8,7 @@ asnode_t *assign_stmt()
     // ident
     next(&t);
     t->token = ST_LVIDENT;
+    t->val.id = findglob(*(char **)names->get[t->val.id]);
     right = mknode(t, NULL, NULL, NULL);
 
     // equals sign + right side of the statement
@@ -44,6 +45,40 @@ asnode_t *cond_stmt()
     return root;
 }
 
+asnode_t *func_call()
+{
+    token_t *ident, *t;
+
+    next(&ident);
+    ident->token = ST_CALL;
+    ident->val.id = findglob(*(char **)names->get[ident->val.id]);
+
+    next(&t); // (
+    next(&t); // )
+    next(&t); // ;
+
+    return mknode(ident, NULL, NULL, NULL);
+}
+
+asnode_t *ret_stmt()
+{
+    token_t *ret, *t;
+    asnode_t *left = NULL;
+
+    next(&ret); // return
+
+    next(&t);
+    if (t->token != T_SEMICOLON)
+    {
+        back();
+        left = binexp(0); // expression
+        next(&t);         // ;
+    }
+
+    ret->token = ST_RETURN;
+    return mknode(ret, left, NULL, NULL);
+}
+
 /*asnode_t *stmt()
 {
 }*/
@@ -78,13 +113,27 @@ asnode_t *block_stmt()
             var_decl();
             break;
         case T_IDENT:
-            right = assign_stmt();
+            next(&t);
+            next(&t);
+            back();
+            back();
+            if (t->token == T_LPAR)
+            {
+                right = func_call();
+            }
+            else
+            {
+                right = assign_stmt();
+            }
             break;
         case T_IF:
             right = cond_stmt();
             break;
         case T_WHILE:
             right = cond_stmt();
+            break;
+        case T_RETURN:
+            right = ret_stmt();
             break;
         case T_RBRACE:
             next(&t);

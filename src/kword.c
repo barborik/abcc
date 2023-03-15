@@ -78,5 +78,12 @@ int match(const char *kword, token_t *t)
         return 1;
     }
 
+    /* === OTHER === */
+    if (!strcmp(kword, "return"))
+    {
+        t->token = T_RETURN;
+        return 1;
+    }
+
     return 0;
 }

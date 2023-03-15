@@ -120,11 +120,7 @@ void keyword(token_t *t)
 
     // no match found, store it as an identifier
     t->token = T_IDENT;
-    if (findglob(kword) < 0)
-    {
-        addglob(kword);
-    }
-    t->value.id = findglob(kword);
+    t->val.id = addname(kword);
     return;
 }
 
@@ -230,11 +226,17 @@ int scan(token_t *t)
     case '}':
         t->token = T_RBRACE;
         break;
+    case ',':
+        t->token = T_COMMA;
+        break;
+    case '.':
+        t->token = T_DOT;
+        break;
     default:
         if (isdigit(c))
         {
             t->token = T_INTLIT;
-            t->value.i = parse2i(c);
+            t->val.i = parse2i(c);
             break;
         }
 

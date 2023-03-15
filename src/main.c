@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
         }
 
         sym_t *sym = glob->get[i];
-        if (sym->func)
+        if (sym->class == C_FUNC)
         {
             gen(sym->root, NULLREG, A_WALK);
         }

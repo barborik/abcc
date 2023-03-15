@@ -185,12 +185,66 @@ void asm_func(asnode_t *root, sym_t *sym)
     }
 }
 
+void asm_call(sym_t *sym)
+{
+    fprintf(asmf, "\tpushaq\n");
+    fprintf(asmf, "\tcall\t\t%s\n", sym->name);
+    fprintf(asmf, "\tpopaq\n");
+}
+
+void asm_ret(int reg)
+{
+    if (reg != NULLREG)
+    {
+        fprintf(asmf, "\tmov\t\trax, %s\n", reglist[reg]);
+    }
+    fprintf(asmf, "\tret\n");
+}
+
 void asm_preamble()
 {
     // externs, globals etc.
     fprintf(asmf,
             "\tglobal  main\n"
             "\textern  exit\n\n");
+
+    // macros
+    fprintf(asmf,
+            "%%macro pushaq 0\n"
+            "\tpush rax\n"
+            "\tpush rbx\n"
+            "\tpush rcx\n"
+            "\tpush rdx\n"
+            "\tpush rbp\n"
+            "\tpush rdi\n"
+            "\tpush rsi\n"
+            "\tpush r8\n"
+            "\tpush r9\n"
+            "\tpush r10\n"
+            "\tpush r11\n"
+            "\tpush r12\n"
+            "\tpush r13\n"
+            "\tpush r14\n"
+            "\tpush r15\n"
+            "%%endmacro\n\n");
+    fprintf(asmf,
+            "%%macro popaq 0\n"
+            "\tpop rax\n"
+            "\tpop rbx\n"
+            "\tpop rcx\n"
+            "\tpop rdx\n"
+            "\tpop rbp\n"
+            "\tpop rdi\n"
+            "\tpop rsi\n"
+            "\tpop r8\n"
+            "\tpop r9\n"
+            "\tpop r10\n"
+            "\tpop r11\n"
+            "\tpop r12\n"
+            "\tpop r13\n"
+            "\tpop r14\n"
+            "\tpop r15\n"
+            "%%endmacro\n\n");
 
     // text section
     fprintf(asmf, "\tsection .text\n");
@@ -204,7 +258,7 @@ void asm_postamble()
     for (size_t i = 0; glob && i < glob->used; i++)
     {
         sym_t *sym = glob->get[i];
-        if (!sym->func)
+        if (sym->class == C_VAR)
         {
             asm_addglob(sym);
         }
@@ -240,11 +294,11 @@ int gen(asnode_t *root, int reg, int cmd)
     case ST_DIV:
         return asm_div(leftreg, rightreg);
     case ST_INTLIT:
-        return asm_load(root->token->value.i);
+        return asm_load(root->token->val.i);
     case ST_IDENT:
-        return asm_loadglob(glob->get[root->token->value.id]);
+        return asm_loadglob(glob->get[root->token->val.id]);
     case ST_LVIDENT:
-        return asm_storeglob(reg, glob->get[root->token->value.id]);
+        return asm_storeglob(reg, glob->get[root->token->val.id]);
     case T_ASSIGN:
         return rightreg;
     case ST_JOIN:
@@ -270,7 +324,7 @@ int gen(asnode_t *root, int reg, int cmd)
     case ST_BITNOT:
         return asm_bitnot(leftreg);
     case ST_ADDR:
-        return asm_addr(glob->get[root->left->token->value.id]);
+        return asm_addr(glob->get[root->left->token->val.id]);
     case ST_DEREF:
         return asm_deref(leftreg);
     case ST_IF:
@@ -299,7 +353,13 @@ int gen(asnode_t *root, int reg, int cmd)
         asm_label(end);
         return NULLREG;
     case ST_FUNC:
-        asm_func(root->left, glob->get[root->token->value.id]);
+        asm_func(root->left, glob->get[root->token->val.id]);
+        return NULLREG;
+    case ST_CALL:
+        asm_call(glob->get[root->token->val.id]);
+        return NULLREG;
+    case ST_RETURN:
+        asm_ret(leftreg);
         return NULLREG;
     default:
         printf("ERROR: unknown token %d on line %d\n", root->token->token, root->token->line);
