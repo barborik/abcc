@@ -13,7 +13,7 @@ int addname(char *name)
 
     for (int i = 0; i < names->used; i++)
     {
-        if (!strncmp(names->get[i], name, strlen(name)))
+        if (!strncmp(*(char **)names->get[i], name, strlen(name)))
         {
             return i;
         }
@@ -30,6 +30,20 @@ int addname(char *name)
 
     dl_add(names, &final);
     return names->used - 1;
+}
+
+int findlocl(sym_t *func, char *name)
+{
+    for (int i = 0; i < func->local->used; i++)
+    {
+        sym_t *sym = func->local->get[i];
+        if (!strncmp(name, sym->name, strlen(name)))
+        {
+            return i;
+        }
+    }
+
+    return -1;
 }
 
 // returns index of the global symbol, -1 if not found
@@ -54,7 +68,7 @@ int findglob(char *name)
 }
 
 // adds a global symbol to the table and returns its index
-int addglob(int type, int class, char *name, dlist_t *args, dlist_t *local, asnode_t *root)
+int addglob(int type, int class, char *name, int argc, dlist_t *local, asnode_t *root)
 {
     if (!glob)
     {
@@ -62,11 +76,16 @@ int addglob(int type, int class, char *name, dlist_t *args, dlist_t *local, asno
         dl_init(glob, sizeof(sym_t));
     }
 
+    if (class == C_EXTN)
+    {
+        name[strlen(name) - 1] = 0;
+    }
+
     sym_t sym;
     sym.type = type;
     sym.class = class;
     sym.name = name;
-    sym.args = args;
+    sym.argc = argc;
     sym.local = local;
     sym.root = root;
 

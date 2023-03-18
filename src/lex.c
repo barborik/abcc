@@ -57,16 +57,16 @@ int nextc()
 // matches token sequence
 int tokseq(int n, ...)
 {
-    token_t t;
+    token_t *t;
     va_list list;
     va_start(list, n);
 
     for (int i = 0; i < n; i++)
     {
         next(&t);
-        if (va_arg(list, int) != t.token)
+        if (va_arg(list, int) != t->token)
         {
-            for (int j = 0; j < i; i++)
+            for (int j = 0; j < i + 1; j++)
             {
                 back();
             }
@@ -74,6 +74,11 @@ int tokseq(int n, ...)
             va_end(list);
             return 0;
         }
+    }
+
+    for (int i = 0; i < n; i++)
+    {
+        back();
     }
 
     va_end(list);

@@ -9,4 +9,6 @@ int val2ptr(token_t *t);
 int ptr2val(token_t *t);
 int ptr2dptr(token_t *t);
 
+int type2size(int type);
+
 #endif

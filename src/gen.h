@@ -4,11 +4,13 @@
 #define NULLREG -1
 
 extern FILE *asmf;
+extern sym_t *func;
 
 enum
 {
     A_WALK,
     A_EXEC,
+    A_ARGS,
 };
 
 void asm_preamble();

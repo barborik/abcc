@@ -1,60 +1,34 @@
 	global  main
-	extern  exit
-
-%macro pushaq 0
-	push rax
-	push rbx
-	push rcx
-	push rdx
-	push rbp
-	push rdi
-	push rsi
-	push r8
-	push r9
-	push r10
-	push r11
-	push r12
-	push r13
-	push r14
-	push r15
-%endmacro
-
-%macro popaq 0
-	pop rax
-	pop rbx
-	pop rcx
-	pop rdx
-	pop rbp
-	pop rdi
-	pop rsi
-	pop r8
-	pop r9
-	pop r10
-	pop r11
-	pop r12
-	pop r13
-	pop r14
-	pop r15
-%endmacro
 
 	section .text
 main:
-	mov		rax, 3
-	mov		[abc_], rax
-	pushaq
-	call		test_
-	popaq
-	mov		rsi, 0
-	sub		rsp, 32
-	call	exit
+	sub		rsp, 8
+	call	ret2_
+	mov		rax, rax
+	mov		[rsp + 0], rax
+	call	ret2_
+	mov		rdi, rax
+	mov		rsi, 8
+	add		rdi, rsi
+	call	test_
+	mov		rbx, 0
+	mov		rax, rbx
+	add		rsp, 8
+	ret
+
+ret2_:
+	mov		rax, 8
+	mov		rax, rax
+	add		rsp, 0
+	ret
 
 test_:
-	mov		rax, 2
-	mov		[abc_], rax
-	mov		rax, 4
-	mov		rax, rax
-	ret
+	push	rdi
+	mov		rdi, [rsp + 0]
+	call	print1i
+	add		rsp, 8
 	ret
 
+	extern print1i
+
 	section .bss
-abc_:				resq 1

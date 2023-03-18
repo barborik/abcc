@@ -1,14 +1,31 @@
 #include "includes.h"
 
-asnode_t *assign_stmt()
+void idsym(token_t *t)
 {
+    char **name = *(char **)names->get[t->val.id];
+
+    t->class = C_LOCL;
+    t->val.id = findlocl(func, name);
+
+    if (t->val.id < 0)
+    {
+        t->class = C_GLOB;
+        t->val.id = findglob(name);
+    }
+}
+
+asnode_t *assign_stmt(sym_t *func)
+{
+    char *name;
     token_t *t;
     asnode_t *root, *left, *right;
 
     // ident
     next(&t);
     t->token = ST_LVIDENT;
-    t->val.id = findglob(*(char **)names->get[t->val.id]);
+
+    idsym(t);
+
     right = mknode(t, NULL, NULL, NULL);
 
     // equals sign + right side of the statement
@@ -27,7 +44,7 @@ asnode_t *assign_stmt()
     return root;
 }
 
-asnode_t *cond_stmt()
+asnode_t *cond_stmt(sym_t *func)
 {
     token_t *t;
     asnode_t *root, *left, *mid, *right;
@@ -38,26 +55,61 @@ asnode_t *cond_stmt()
     next(&t);        // (
     mid = binexp(0); // condition
     next(&t);        // )
-    left = block_stmt();
+    left = block_stmt(func);
 
     root->mid = mid;
     root->left = left;
     return root;
 }
 
-asnode_t *func_call()
+asnode_t *explist()
+{
+    token_t *t;
+    asnode_t *root = NULL, *right = NULL;
+
+    token_t *join = malloc(sizeof(token_t));
+    join->token = ST_JOIN;
+
+    while (1)
+    {
+        if (tokseq(1, T_RPAR))
+        {
+            break;
+        }
+
+        right = binexp(0);
+        root = mknode(join, root, NULL, right);
+
+        if (tokseq(1, T_RPAR))
+        {
+            break;
+        }
+        next(&t);
+    }
+
+    return root;
+}
+
+asnode_t *func_call(int semi)
 {
     token_t *ident, *t;
+    asnode_t *left;
 
     next(&ident);
     ident->token = ST_CALL;
     ident->val.id = findglob(*(char **)names->get[ident->val.id]);
 
     next(&t); // (
+    left = explist();
+    // left = binexp(0);
     next(&t); // )
-    next(&t); // ;
 
-    return mknode(ident, NULL, NULL, NULL);
+    if (semi)
+    {
+        next(&t); // ;
+    }
+
+    return mknode(ident, left, NULL, NULL);
 }
 
 asnode_t *ret_stmt()
@@ -79,11 +131,7 @@ asnode_t *ret_stmt()
     return mknode(ret, left, NULL, NULL);
 }
 
-/*asnode_t *stmt()
-{
-}*/
-
-asnode_t *block_stmt()
+asnode_t *block_stmt(sym_t *func)
 {
     token_t *t;
     asnode_t *right, *root = NULL;
@@ -95,6 +143,7 @@ asnode_t *block_stmt()
 
     while (next(&t))
     {
+        // printf("stmt | %d %d\n", t->line, t->token);
         back();
         right = NULL;
 
@@ -110,27 +159,23 @@ asnode_t *block_stmt()
         case T_U16:
         case T_U32:
         case T_U64:
-            var_decl();
+            var_decl(C_LOCL, func);
             break;
         case T_IDENT:
-            next(&t);
-            next(&t);
-            back();
-            back();
-            if (t->token == T_LPAR)
+            if (tokseq(2, T_IDENT, T_LPAR))
             {
-                right = func_call();
+                right = func_call(1);
             }
             else
             {
-                right = assign_stmt();
+                right = assign_stmt(func);
             }
             break;
         case T_IF:
-            right = cond_stmt();
+            right = cond_stmt(func);
             break;
         case T_WHILE:
-            right = cond_stmt();
+            right = cond_stmt(func);
             break;
         case T_RETURN:
             right = ret_stmt();

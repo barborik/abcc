@@ -37,7 +37,17 @@ static char *reglist64[] = {"rax", "rbx", "rcx", "rdx"};
 static char *reglist32[] = {"eax", "ebx", "ecx", "edx"};
 static char *reglist16[] = {"ax", "bx", "cx", "dx"};
 static char *reglist8[] = {"al", "bl", "cl", "dl"};
-static char **reglist = reglist64;
+
+static char *arglist_win64[] = {"rcx", "rdx", "r8", "r9"};
+static char *arglist_elf64[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+
+static int regalloc_norm[] = {0, 0, 0, 0};
+static int regalloc_win64[] = {0, 0, 0, 0};
+static int regalloc_elf64[] = {0, 0, 0, 0, 0, 0};
+
+static char **reglist;
+static char **arglist;
+static int *regalloc;
 
 // operator precedence table
 static int prec[] = {
@@ -135,6 +145,7 @@ enum
     T_BLOCK_END,
 
     // TODO: sort these
+    T_EXTERN,    // extern
     T_RETURN,    // return
     T_ASSIGN,    // =
     T_SEMICOLON, // ;

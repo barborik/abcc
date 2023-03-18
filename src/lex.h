@@ -7,6 +7,7 @@ extern dlist_t *tokens;
 typedef struct
 {
     int token;
+    int class;
     union
     {
         int i;

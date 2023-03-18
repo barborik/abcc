@@ -102,6 +102,11 @@ asnode_t *unexp()
     asnode_t *root;
     token_t *t;
 
+    if (tokseq(2, T_IDENT, T_LPAR))
+    {
+        return func_call(0);
+    }
+
     next(&t);
     un2stx(t);
 

@@ -51,6 +51,7 @@ int bin2stx(token_t *t)
         break;
     case T_IDENT:
         t->token = ST_IDENT;
+        idsym(t);
         break;
     default:
         return 0;
@@ -80,6 +81,7 @@ int un2stx(token_t *t)
         break;
     case T_IDENT:
         t->token = ST_IDENT;
+        idsym(t);
         break;
     default:
         return 0;
@@ -229,4 +231,31 @@ int ptr2dptr(token_t *t)
     }
 
     return 1;
+}
+
+int type2size(int type)
+{
+    switch (type)
+    {
+    case T_I8:
+    case T_U8:
+        return 1;
+        break;
+    case T_I16:
+    case T_U16:
+        return 2;
+        break;
+    case T_I32:
+    case T_U32:
+        return 4;
+        break;
+    case T_I64:
+    case T_U64:
+        return 8;
+        break;
+    default:
+        return 8;
+    }
+
+    return -1;
 }

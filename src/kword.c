@@ -85,5 +85,11 @@ int match(const char *kword, token_t *t)
         return 1;
     }
 
+    if (!strcmp(kword, "extern"))
+    {
+        t->token = T_EXTERN;
+        return 1;
+    }
+
     return 0;
 }

@@ -28,12 +28,7 @@ int main(int argc, char *argv[])
 
     // asnode_t *root = stmt();
     // gen(root, NULLREG);
-    token_t *t;
-    while (next(&t))
-    {
-        back();
-        func_decl();
-    }
+    decl();
 
     // find main and generate it
     int skip;
@@ -43,6 +38,7 @@ int main(int argc, char *argv[])
         if (!strcmp(sym->name, "main"))
         {
             skip = i;
+            func = sym;
             gen(sym->root, NULLREG, A_WALK);
             break;
         }
@@ -57,8 +53,9 @@ int main(int argc, char *argv[])
         }
 
         sym_t *sym = glob->get[i];
-        if (sym->class == C_FUNC)
+        if (sym->class == C_FUNC && sym->root)
         {
+            func = sym;
             gen(sym->root, NULLREG, A_WALK);
         }
     }

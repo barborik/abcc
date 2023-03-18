@@ -1,8 +1,7 @@
 #include "includes.h"
 
 FILE *asmf;
-
-int regalloc[] = {0, 0, 0, 0};
+sym_t *func;
 int label = 1;
 
 int ralloc()
@@ -99,31 +98,7 @@ int asm_deref(int reg)
 
 void asm_addglob(sym_t *sym)
 {
-    char len[8];
-
-    switch (sym->type)
-    {
-    case T_I8:
-    case T_U8:
-        sprintf(len, "resb");
-        break;
-    case T_I16:
-    case T_U16:
-        sprintf(len, "resw");
-        break;
-    case T_I32:
-    case T_U32:
-        sprintf(len, "resd");
-        break;
-    case T_I64:
-    case T_U64:
-        sprintf(len, "resq");
-        break;
-    default:
-        sprintf(len, "resq");
-    }
-
-    fprintf(asmf, "%s:\t\t\t\t%s 1\n", sym->name, len);
+    fprintf(asmf, "%s:\t\t\t\tresb %d\n", sym->name, type2size(sym->type));
 }
 
 int asm_loadglob(sym_t *sym)
@@ -136,6 +111,19 @@ int asm_loadglob(sym_t *sym)
 int asm_storeglob(int reg, sym_t *sym)
 {
     fprintf(asmf, "\tmov\t\t[%s], %s\n", sym->name, reglist[reg]);
+    return reg;
+}
+
+int asm_loadlocl(sym_t *sym, int cmd)
+{
+    int reg = ralloc(), offs;
+    fprintf(asmf, "\tmov\t\t%s, [rsp + %d]\n", reglist[reg], sym->offs);
+    return reg;
+}
+
+int asm_storelocl(int reg, sym_t *sym, int cmd)
+{
+    fprintf(asmf, "\tmov\t\t[rsp + %d], %s\n", sym->offs, reglist[reg]);
     return reg;
 }
 
@@ -170,81 +158,67 @@ void asm_jump(int l)
 void asm_func(asnode_t *root, sym_t *sym)
 {
     fprintf(asmf, "%s:\n", sym->name);
-    gen(root, NULLREG, A_EXEC);
 
-    if (!strcmp(sym->name, "main"))
+    if (!strcmp(func->name, "main"))
     {
-        fprintf(asmf,
-                "\tmov\t\trsi, 0\n"
-                "\tsub\t\trsp, 32\n"
-                "\tcall\texit\n\n");
+        fprintf(asmf, "\tsub\t\trsp, 8\n");
     }
-    else
+
+    for (int i = 0; i < sym->argc; i++)
     {
-        fprintf(asmf, "\tret\n");
+        fprintf(asmf, "\tpush\t%s\n", arglist[i]);
     }
+
+    gen(root, NULLREG, A_EXEC);
 }
 
-void asm_call(sym_t *sym)
+int asm_call(asnode_t *args, sym_t *sym)
 {
-    fprintf(asmf, "\tpushaq\n");
-    fprintf(asmf, "\tcall\t\t%s\n", sym->name);
-    fprintf(asmf, "\tpopaq\n");
+    int reg = ralloc();
+
+    gen(args, NULLREG, A_ARGS);
+    fprintf(asmf, "\tcall\t%s\n", sym->name);
+
+    if (sym->type != T_U0 && sym->type != T_I0)
+    {
+        fprintf(asmf, "\tmov\t\t%s, rax\n", reglist[reg]);
+    }
+
+    if (sym->type == T_U0 || sym->type == T_I0)
+    {
+        rfree(reg);
+        return NULLREG;
+    }
+
+    return reg;
 }
 
 void asm_ret(int reg)
 {
+    int add = 0;
+    for (int i = 0; i < func->argc; i++)
+    {
+        sym_t *sym = func->local->get[i];
+        add += type2size(sym->type);
+    }
+
+    if (!strcmp(func->name, "main"))
+    {
+        add = 8;
+    }
+
     if (reg != NULLREG)
     {
         fprintf(asmf, "\tmov\t\trax, %s\n", reglist[reg]);
     }
-    fprintf(asmf, "\tret\n");
+    fprintf(asmf, "\tadd\t\trsp, %d\n", add);
+    fprintf(asmf, "\tret\n\n");
 }
 
 void asm_preamble()
 {
-    // externs, globals etc.
-    fprintf(asmf,
-            "\tglobal  main\n"
-            "\textern  exit\n\n");
-
-    // macros
-    fprintf(asmf,
-            "%%macro pushaq 0\n"
-            "\tpush rax\n"
-            "\tpush rbx\n"
-            "\tpush rcx\n"
-            "\tpush rdx\n"
-            "\tpush rbp\n"
-            "\tpush rdi\n"
-            "\tpush rsi\n"
-            "\tpush r8\n"
-            "\tpush r9\n"
-            "\tpush r10\n"
-            "\tpush r11\n"
-            "\tpush r12\n"
-            "\tpush r13\n"
-            "\tpush r14\n"
-            "\tpush r15\n"
-            "%%endmacro\n\n");
-    fprintf(asmf,
-            "%%macro popaq 0\n"
-            "\tpop rax\n"
-            "\tpop rbx\n"
-            "\tpop rcx\n"
-            "\tpop rdx\n"
-            "\tpop rbp\n"
-            "\tpop rdi\n"
-            "\tpop rsi\n"
-            "\tpop r8\n"
-            "\tpop r9\n"
-            "\tpop r10\n"
-            "\tpop r11\n"
-            "\tpop r12\n"
-            "\tpop r13\n"
-            "\tpop r14\n"
-            "\tpop r15\n"
-            "%%endmacro\n\n");
+    // main directive
+    fprintf(asmf, "\tglobal  main\n\n");
 
     // text section
     fprintf(asmf, "\tsection .text\n");
@@ -252,13 +226,23 @@ void asm_preamble()
 
 void asm_postamble()
 {
+    // externs
+    for (int i = 0; i < glob->used; i++)
+    {
+        sym_t *sym = glob->get[i];
+        if (sym->class == C_EXTN)
+        {
+            fprintf(asmf, "\textern %s\n", sym->name);
+        }
+    }
+
     // bss section
     fprintf(asmf,
             "\n\tsection .bss\n");
     for (size_t i = 0; glob && i < glob->used; i++)
     {
         sym_t *sym = glob->get[i];
-        if (sym->class == C_VAR)
+        if (sym->class == C_GLOB)
         {
             asm_addglob(sym);
         }
@@ -267,11 +251,23 @@ void asm_postamble()
 
 int gen(asnode_t *root, int reg, int cmd)
 {
+    token_t *t;
     int start, end;
     int leftreg = NULLREG, rightreg = NULLREG;
 
-    token_t *t = root->token;
-    if (t->token != ST_JOIN && !isblock(t) && cmd == A_EXEC)
+    if (!root)
+    {
+        return;
+    }
+
+    t = root->token;
+
+    if (t->token == ST_CALL)
+    {
+        cmd = A_WALK;
+    }
+
+    if (t->token != ST_JOIN && !isblock(t) && cmd != A_WALK)
     {
         if (root->left)
         {
@@ -283,7 +279,21 @@ int gen(asnode_t *root, int reg, int cmd)
         }
     }
 
-    switch (root->token->token)
+    switch (cmd)
+    {
+    case A_EXEC:
+        reglist = reglist64;
+        arglist = arglist_elf64;
+        regalloc = regalloc_norm;
+        break;
+    case A_ARGS:
+        reglist = arglist_elf64;
+        arglist = arglist_elf64;
+        regalloc = regalloc_elf64;
+        break;
+    }
+
+    switch (t->token)
     {
     case ST_ADD:
         return asm_add(leftreg, rightreg);
@@ -294,18 +304,32 @@ int gen(asnode_t *root, int reg, int cmd)
     case ST_DIV:
         return asm_div(leftreg, rightreg);
     case ST_INTLIT:
-        return asm_load(root->token->val.i);
+        return asm_load(t->val.i);
     case ST_IDENT:
-        return asm_loadglob(glob->get[root->token->val.id]);
+        if (t->class == C_LOCL)
+        {
+            return asm_loadlocl(func->local->get[t->val.id], cmd);
+        }
+        return asm_loadglob(glob->get[t->val.id]);
     case ST_LVIDENT:
-        return asm_storeglob(reg, glob->get[root->token->val.id]);
+        if (t->class == C_LOCL)
+        {
+            return asm_storelocl(reg, func->local->get[t->val.id], cmd);
+        }
+        return asm_storeglob(reg, glob->get[t->val.id]);
     case T_ASSIGN:
         return rightreg;
     case ST_JOIN:
         gen(root->left, NULLREG, cmd);
-        rfree_all();
+        if (cmd != A_ARGS)
+        {
+            rfree_all();
+        }
         gen(root->right, NULLREG, cmd);
-        rfree_all();
+        if (cmd != A_ARGS)
+        {
+            rfree_all();
+        }
         return NULLREG;
     case ST_EQ:
         return asm_cmpset(leftreg, rightreg, "sete");
@@ -353,16 +377,15 @@ int gen(asnode_t *root, int reg, int cmd)
         asm_label(end);
         return NULLREG;
     case ST_FUNC:
-        asm_func(root->left, glob->get[root->token->val.id]);
+        asm_func(root->left, glob->get[t->val.id]);
         return NULLREG;
     case ST_CALL:
-        asm_call(glob->get[root->token->val.id]);
-        return NULLREG;
+        return asm_call(root->left, glob->get[t->val.id]);
     case ST_RETURN:
         asm_ret(leftreg);
         return NULLREG;
     default:
-        printf("ERROR: unknown token %d on line %d\n", root->token->token, root->token->line);
+        printf("ERROR: unknown token %d on line %d\n", t->token, t->line);
         exit(1);
     }
 }
