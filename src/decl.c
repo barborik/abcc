@@ -26,13 +26,14 @@ void typemod(token_t *type)
     }
 }
 
-dlist_t *fargs()
+dlist_t *args()
 {
-    token_t *type, *ident, *t;
-    dlist_t *args = malloc(sizeof(dlist_t));
-    dl_init(args, sizeof(sym_t));
+    token_t *type, *ident, *tmp;
+    dlist_t *local = malloc(sizeof(dlist_t));
 
-    next(&t); // (
+    dl_init(local, sizeof(sym_t));
+
+    next(&tmp); // (
 
     while (1)
     {
@@ -46,34 +47,36 @@ dlist_t *fargs()
         }
 
         next(&ident); // ident
-        next(&t);     // , or )
+        next(&tmp);   // , or )
 
         sym_t sym;
         sym.type = type->token;
+        sym.class = C_LOCL;
+        sym.size = 1;
         sym.name = *(char **)names->get[ident->val.id];
 
         sym.offs = 0;
-        for (int i = 0; i < args->used; i++)
+        for (int i = 0; i < local->used; i++)
         {
-            sym_t *arg = args->get[i];
-            sym.offs += type2size(arg->type);
+            sym_t *tmp = local->get[i];
+            sym.offs += type2size(tmp->type);
         }
 
-        dl_add(args, &sym);
+        dl_add(local, &sym);
 
-        if (t->token == T_RPAR)
+        if (tmp->token == T_RPAR)
         {
             break;
         }
     }
 
-    return args;
+    return local;
 }
 
-void var_decl(int class, sym_t *func)
+void var_decl(int class)
 {
-    sym_t sym;
-    token_t *type, *ident, *t;
+    int size = 1;
+    token_t *type, *ident, *tmp, *len = NULL;
 
     next(&type); // data type
 
@@ -81,28 +84,38 @@ void var_decl(int class, sym_t *func)
     typemod(type);
 
     next(&ident); // identifier
-    next(&t);     // semicolon
+    if (tokseq(1, T_LSQBR))
+    {
+        next(&tmp); // [
+        next(&len); // integer literal
+        next(&tmp); // ]
+
+        if (isvaltype(type))
+        {
+            val2ptr(type);
+        }
+
+        if (isptr(type))
+        {
+            ptr2dptr(type);
+        }
+    }
+    next(&tmp); // semicolon
+
+    if (len)
+    {
+        size = len->val.i;
+    }
 
     // global variable
     if (class == C_GLOB)
     {
-        ident->val.id = addglob(type->token, class, *(char **)names->get[ident->val.id], NULL, NULL, NULL);
+        ident->val.id = addglob(type->token, class, *(char **)names->get[ident->val.id], size, NULL, NULL, NULL);
         return;
     }
 
     // local variable
-    sym.name = *(char **)names->get[ident->val.id];
-    sym.type = ident->token;
-    sym.class = class;
-
-    sym.offs = 0;
-    for (int i = 0; i < func->local->used; i++)
-    {
-        sym_t *local = func->local->get[i];
-        sym.offs += type2size(local->type);
-    }
-
-    dl_add(func->local, &sym);
+    ident->val.id = addlocl(type->token, class, *(char **)names->get[ident->val.id], size);
 }
 
 void func_decl(int class)
@@ -111,7 +124,7 @@ void func_decl(int class)
     sym_t *sym;
     dlist_t *local;
     asnode_t *root;
-    token_t *type, *ident, *t;
+    token_t *type, *ident, *tmp;
 
     next(&type);   // data type
     typemod(type); // pointer modifiers
@@ -119,13 +132,13 @@ void func_decl(int class)
     next(&ident); // identifier
     ident->token = ST_FUNC;
 
-    local = fargs(); // arguments
+    local = args(); // parse arguments
 
     // declaration
     if (tokseq(1, T_SEMICOLON))
     {
-        next(&t);
-        addglob(type->token, class, *(char **)names->get[ident->val.id], local->used, NULL, NULL);
+        next(&tmp);
+        addglob(type->token, class, *(char **)names->get[ident->val.id], NULL, local->used, NULL, NULL);
         return;
     }
 
@@ -134,7 +147,7 @@ void func_decl(int class)
     ident->val.id = findglob(names->get[ident->val.id]);
     if (ident->val.id < 0)
     {
-        ident->val.id = addglob(type->token, class, name, local->used, local, root);
+        ident->val.id = addglob(type->token, class, name, NULL, local->used, local, root);
     }
 
     func = glob->get[ident->val.id];
@@ -165,31 +178,34 @@ void decl()
         case T_U32:
         case T_U64:
             next(&t);
-            if (tokseq(2, T_IDENT, T_SEMICOLON))
+            if (tokseq(2, T_IDENT, T_LPAR))
             {
                 back();
-                var_decl(C_GLOB, NULL);
+                func_decl(C_FUNC);
             }
             else
             {
                 back();
-                func_decl(C_FUNC);
+                var_decl(C_GLOB);
             }
             break;
         case T_EXTERN:
             next(&t);
             next(&t);
-            if (tokseq(2, T_IDENT, T_SEMICOLON))
-            {
-                back();
-                var_decl(C_EXTN, NULL);
-            }
-            else
+            if (tokseq(2, T_IDENT, T_LPAR))
             {
                 back();
                 func_decl(C_EXTN);
             }
+            else
+            {
+                back();
+                var_decl(C_EXTN);
+            }
             break;
+        default:
+            printf("ERROR: line %d\n", t->line);
+            exit(1);
         }
     }
 

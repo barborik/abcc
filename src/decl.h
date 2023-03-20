@@ -3,6 +3,6 @@
 
 void decl();
 void func_decl(int class);
-void var_decl(int class, sym_t *func);
+void var_decl(int class);
 
 #endif

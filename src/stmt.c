@@ -5,7 +5,7 @@ void idsym(token_t *t)
     char **name = *(char **)names->get[t->val.id];
 
     t->class = C_LOCL;
-    t->val.id = findlocl(func, name);
+    t->val.id = findlocl(name);
 
     if (t->val.id < 0)
     {
@@ -14,37 +14,7 @@ void idsym(token_t *t)
     }
 }
 
-asnode_t *assign_stmt(sym_t *func)
-{
-    char *name;
-    token_t *t;
-    asnode_t *root, *left, *right;
-
-    // ident
-    next(&t);
-    t->token = ST_LVIDENT;
-
-    idsym(t);
-
-    right = mknode(t, NULL, NULL, NULL);
-
-    // equals sign + right side of the statement
-    next(&t);
-    left = binexp(0);
-
-    root = mknode(t, left, NULL, right);
-
-    // gen(root, -1);
-    // rfree_all();
-
-    // semicolon
-    next(&t);
-    // handle error if (t.token != T_SEMICOLON) ERROR
-
-    return root;
-}
-
-asnode_t *cond_stmt(sym_t *func)
+asnode_t *cond_stmt()
 {
     token_t *t;
     asnode_t *root, *left, *mid, *right;
@@ -101,7 +71,6 @@ asnode_t *func_call(int semi)
 
     next(&t); // (
     left = explist();
-    // left = binexp(0);
     next(&t); // )
 
     if (semi)
@@ -159,7 +128,7 @@ asnode_t *block_stmt(sym_t *func)
         case T_U16:
         case T_U32:
         case T_U64:
-            var_decl(C_LOCL, func);
+            var_decl(C_LOCL);
             break;
         case T_IDENT:
             if (tokseq(2, T_IDENT, T_LPAR))
@@ -168,14 +137,15 @@ asnode_t *block_stmt(sym_t *func)
             }
             else
             {
-                right = assign_stmt(func);
+                right = binexp(0); // assignment expression
+                next(&t);          // ;
             }
             break;
         case T_IF:
-            right = cond_stmt(func);
+            right = cond_stmt();
             break;
         case T_WHILE:
-            right = cond_stmt(func);
+            right = cond_stmt();
             break;
         case T_RETURN:
             right = ret_stmt();
@@ -183,6 +153,9 @@ asnode_t *block_stmt(sym_t *func)
         case T_RBRACE:
             next(&t);
             return root;
+        default:
+            right = binexp(0); // assignment expression
+            next(&t);          // ;
         }
 
         if (right)

@@ -225,6 +225,12 @@ int scan(token_t *t)
     case ')':
         t->token = T_RPAR;
         break;
+    case '[':
+        t->token = T_LSQBR;
+        break;
+    case ']':
+        t->token = T_RSQBR;
+        break;
     case '{':
         t->token = T_LBRACE;
         break;

@@ -1,0 +1,33 @@
+extern U0 print1i(I32 i);
+
+U0 fib(I32 i)
+{
+    I32 j;
+    j = 0;
+
+    I32 a;
+    I32 b;
+    I32 c;
+
+    a = 0;
+    b = 1;
+    c = 0;
+
+    while (j < i)
+    {
+        print1i(a);
+
+        c = a + b;
+        a = b;
+        b = c;
+
+        j = j + 1;
+    }
+    return;
+}
+
+I32 main(U0)
+{
+    fib(10);
+    return 0;
+}

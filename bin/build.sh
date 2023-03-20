@@ -1,4 +1,4 @@
-./abcc test.abc test.asm
+./abcc fib.abc test.asm
 nasm -f elf64 test.asm
 
 gcc -c print.c

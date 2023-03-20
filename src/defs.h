@@ -33,33 +33,31 @@ WINDOWS - integer or pointer | rcx   | rdx    | r8    | r9     | stack
 
 // register list
 // https://en.wikibooks.org/wiki/X86_Assembly/X86_Architecture
-static char *reglist64[] = {"rax", "rbx", "rcx", "rdx"};
-static char *reglist32[] = {"eax", "ebx", "ecx", "edx"};
-static char *reglist16[] = {"ax", "bx", "cx", "dx"};
-static char *reglist8[] = {"al", "bl", "cl", "dl"};
+#define NARGS_WIN64 4
+#define NARGS_ELF64 6
 
-static char *arglist_win64[] = {"rcx", "rdx", "r8", "r9"};
-static char *arglist_elf64[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+static char *reglist64_win64[] = {"rcx", "rdx", "r8", "r9"};
+static char *reglist32_win64[] = {"ecx", "edx", "r8d", "r9d"};
+static char *reglist16_win64[] = {"cx", "dx", "r8w", "r9w"};
+static char *reglist8_win64[] = {"cl", "dl", "r8b", "r9b"};
 
-static int regalloc_norm[] = {0, 0, 0, 0};
+static char *reglist64_elf64[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+static char *reglist32_elf64[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
+static char *reglist16_elf64[] = {"di", "si", "rdx", "cx", "r8w", "r9w"};
+static char *reglist8_elf64[] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
+
 static int regalloc_win64[] = {0, 0, 0, 0};
 static int regalloc_elf64[] = {0, 0, 0, 0, 0, 0};
 
+static char **reglist64;
+static char **reglist32;
+static char **reglist16;
+static char **reglist8;
+
 static char **reglist;
-static char **arglist;
 static int *regalloc;
 
-// operator precedence table
-static int prec[] = {
-    /*
-    +  -  *  /  == != >  <  >= <= &  |  ! */
-    1, 1, 2, 2, 4, 4, 3, 3, 3, 3, 1, 1, 1,
-    1, // REF &
-    1, // DEREF *
-    0  // INTLIT
-};
-
-// tokens
+// lexical tokens
 enum
 {
     /*
@@ -83,6 +81,7 @@ enum
     T_DPIPE,    // ||
     T_EXCL,     // !
     T_TILDA,    // ~
+    T_ASSIGN,   // =
     T_OP_END,
 
     T_LIT_START,
@@ -147,15 +146,29 @@ enum
     // TODO: sort these
     T_EXTERN,    // extern
     T_RETURN,    // return
-    T_ASSIGN,    // =
     T_SEMICOLON, // ;
     T_IDENT,     // identifier
     T_LPAR,      // (
     T_RPAR,      // )
     T_LBRACE,    // {
     T_RBRACE,    // }
+    T_LSQBR,     // [
+    T_RSQBR,     // ]
     T_COMMA,     // ,
     T_DOT,       // .
+};
+
+// operator precedence table
+static int prec[] = {
+    NULL, // OP_START
+    /*
+    +  -  *  /  == != >  <  >= <= && || &  |  =  !  ~ */
+    1, 1, 2, 2, 4, 4, 3, 3, 3, 3, 1, 1, 1, 1, 0, 1, 1,
+    1,    // REF &
+    1,    // DEREF *
+    NULL, // OP_END
+    NULL, // LIT_START
+    0     // INTLIT
 };
 
 // sytax tokens
@@ -178,6 +191,7 @@ enum
     ST_LOGOR,  // ||
     ST_BITAND, // &
     ST_BITOR,  // |
+    ST_ASSIGN, // =
 
     // unary
     ST_LOGNOT, // !
@@ -199,11 +213,8 @@ enum
 
     // other
     ST_RETURN,    // return
-    ST_ASSIGN,    // =
     ST_SEMICOLON, // ;
     ST_IDENT,     // identifier
-    ST_LVIDENT,   // left value ident
-    ST_RVIDENT,   // right value ident
     ST_JOIN,      // token for holding asnodes together
     ST_FUNC,      // function (or procedure)
     ST_CALL,      // function call

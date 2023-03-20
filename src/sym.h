@@ -15,6 +15,7 @@ enum
 typedef struct
 {
     int type;   // data type
+    int size;   // number of elements
     int class;  // one of the values from the enum above
     char *name; // symbol name
 
@@ -28,8 +29,9 @@ typedef struct
 } sym_t;
 
 int addname(char *name);
-int addglob(int type, int class, char *name, int argc, dlist_t *local, asnode_t *root);
+int addglob(int type, int class, char *name, int size, int argc, dlist_t *local, asnode_t *root);
+int addlocl(int type, int class, char *name, int size);
 int findglob(char *name);
-int findlocl(sym_t *func, char *name);
+int findlocl(char *name);
 
 #endif

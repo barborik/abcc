@@ -46,6 +46,9 @@ int bin2stx(token_t *t)
     case T_DPIPE:
         t->token = ST_LOGOR;
         break;
+    case T_ASSIGN:
+        t->token = ST_ASSIGN;
+        break;
     case T_INTLIT:
         t->token = ST_INTLIT;
         break;
