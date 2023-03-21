@@ -1,0 +1,17 @@
+extern U0 printf(I8* str);
+
+I32 main(U0)
+{
+    I8  a[3];
+    I8* b;
+
+    a[0] = 65;
+    a[1] = 10;
+    a[2] = 0;
+
+    b = &a;
+
+    printf(b);
+
+    return 0;
+}

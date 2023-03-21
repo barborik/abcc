@@ -4,24 +4,17 @@ void typemod(token_t *type)
 {
     token_t *t;
 
-    for (int i = 0; i < 2; i++)
+    while (tokseq(1, T_ASTERISK))
     {
         next(&t);
-        if (t->token == T_ASTERISK)
-        {
-            if (isvaltype(t))
-            {
-                val2ptr(type);
-            }
 
-            if (isptr(t))
-            {
-                ptr2dptr(type);
-            }
-        }
-        else
+        if (isvaltype(type))
         {
-            back();
+            val2ptr(type);
+        }
+        else if (isptr(type))
+        {
+            ptr2dptr(type);
         }
     }
 }
@@ -73,7 +66,7 @@ dlist_t *args()
     return local;
 }
 
-void var_decl(int class)
+asnode_t *var_decl(int class)
 {
     int size = 1;
     token_t *type, *ident, *tmp, *len = NULL;
@@ -90,15 +83,14 @@ void var_decl(int class)
         next(&len); // integer literal
         next(&tmp); // ]
 
-        if (isvaltype(type))
+        /*if (isvaltype(type))
         {
             val2ptr(type);
         }
-
-        if (isptr(type))
+        else if (isptr(type))
         {
             ptr2dptr(type);
-        }
+        }*/
     }
     next(&tmp); // semicolon
 
@@ -111,11 +103,13 @@ void var_decl(int class)
     if (class == C_GLOB)
     {
         ident->val.id = addglob(type->token, class, *(char **)names->get[ident->val.id], size, NULL, NULL, NULL);
-        return;
+        return NULL;
     }
 
     // local variable
+    ident->token = ST_ALLOC;
     ident->val.id = addlocl(type->token, class, *(char **)names->get[ident->val.id], size);
+    return mknode(ident, NULL, NULL, NULL);
 }
 
 void func_decl(int class)
@@ -162,6 +156,7 @@ void decl()
     token_t *t;
     while (next(&t))
     {
+        level = 0;
         // printf("decl | %d %d\n", t->line, t->token);
         back();
 

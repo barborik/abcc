@@ -124,9 +124,7 @@ asnode_t *arrindex()
 
     next(&ident); // ident
 
-    ident->class = C_LOCL;
-    ident->val.id = findlocl(*(char **)names->get[ident->val.id]);
-    if (ident->val.id < 0)
+    if (findlocl(*(char **)names->get[ident->val.id]) < 0)
     {
         ident->class = C_GLOB;
         ident->val.id = findglob(*(char **)names->get[ident->val.id]);
@@ -135,6 +133,9 @@ asnode_t *arrindex()
     }
     else
     {
+        ident->class = C_LOCL;
+        ident->val.id = findlocl(*(char **)names->get[ident->val.id]);
+
         sym = func->local->get[ident->val.id];
     }
 
@@ -157,7 +158,7 @@ asnode_t *arrindex()
     mul->token = ST_MUL;
     right = mknode(mul, right, NULL, mknode(offs, NULL, NULL, NULL));
 
-    lbr->token = ST_SUB;
+    lbr->token = ST_ADD;
     root = mknode(lbr, left, NULL, right);
 
     // dereference

@@ -123,18 +123,18 @@ enum
 
     // double pointers
     T_TYPE_DPTR_START,
-    T_I0PTRPTR,
-    T_U0PTRPTR,
+    T_I0DPTR,
+    T_U0DPTR,
 
-    T_I8PTRPTR,
-    T_I16PTRPTR,
-    T_I32PTRPTR,
-    T_I64PTRPTR,
+    T_I8DPTR,
+    T_I16DPTR,
+    T_I32DPTR,
+    T_I64DPTR,
 
-    T_U8PTRPTR,
-    T_U16PTRPTR,
-    T_U32PTRPTR,
-    T_U64PTRPTR,
+    T_U8DPTR,
+    T_U16DPTR,
+    T_U32DPTR,
+    T_U64DPTR,
     T_TYPE_DPTR_END,
     T_TYPE_END,
 
@@ -218,6 +218,7 @@ enum
     ST_JOIN,      // token for holding asnodes together
     ST_FUNC,      // function (or procedure)
     ST_CALL,      // function call
+    ST_ALLOC,     // stack allocation (local variable declaration)
 };
 
 #endif

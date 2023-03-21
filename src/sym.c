@@ -39,15 +39,11 @@ int addlocl(int type, int class, char *name, int size)
     sym.class = class;
     sym.name = name;
     sym.size = size;
-
+    sym.level = level;
     sym.offs = 0;
-    for (int i = 0; i < func->local->used; i++)
-    {
-        sym_t *local = func->local->get[i];
-        sym.offs += type2size(local->type) * size;
-    }
 
     dl_add(func->local, &sym);
+    return func->local->used - 1;
 }
 
 int findlocl(char *name)
@@ -99,6 +95,9 @@ int addglob(int type, int class, char *name, int size, int argc, dlist_t *local,
         name[strlen(name) - 1] = 0;
     }
 
+    dlist_t *stack = malloc(sizeof(dlist_t));
+    dl_init(stack, sizeof(sym_t *));
+
     sym_t sym;
     sym.type = type;
     sym.class = class;
@@ -107,6 +106,8 @@ int addglob(int type, int class, char *name, int size, int argc, dlist_t *local,
     sym.local = local;
     sym.root = root;
     sym.size = size;
+    sym.stack = stack;
+    sym.level = 1;
 
     dl_add(glob, &sym);
     return glob->used - 1;

@@ -19,12 +19,16 @@ typedef struct
     int class;  // one of the values from the enum above
     char *name; // symbol name
 
+    /* SHARED */
+    int level; // indentation level of the symbol
+
     /* LOCAL ONLY */
     int offs; // stack offset of a local symbol
 
     /* FUNCTION ONLY */
     int argc;       // number of arguments
     dlist_t *local; // local symbols of a function including arguments
+    dlist_t *stack; // simulates a function stack, adding and removing elements while generating
     asnode_t *root; // root of the function ast
 } sym_t;
 

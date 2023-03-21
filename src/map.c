@@ -200,34 +200,34 @@ int ptr2dptr(token_t *t)
     switch (t->token)
     {
     case T_I0PTR:
-        t->token = T_I0PTRPTR;
+        t->token = T_I0DPTR;
         break;
     case T_I8PTR:
-        t->token = T_I8PTRPTR;
+        t->token = T_I8DPTR;
         break;
     case T_I16PTR:
-        t->token = T_I16PTRPTR;
+        t->token = T_I16DPTR;
         break;
     case T_I32PTR:
-        t->token = T_I32PTRPTR;
+        t->token = T_I32DPTR;
         break;
     case T_I64PTR:
-        t->token = T_I64PTRPTR;
+        t->token = T_I64DPTR;
         break;
     case T_U0PTR:
-        t->token = T_U0PTRPTR;
+        t->token = T_U0DPTR;
         break;
     case T_U8PTR:
-        t->token = T_U8PTRPTR;
+        t->token = T_U8DPTR;
         break;
     case T_U16PTR:
-        t->token = T_U16PTRPTR;
+        t->token = T_U16DPTR;
         break;
     case T_U32PTR:
-        t->token = T_U32PTRPTR;
+        t->token = T_U32DPTR;
         break;
     case T_U64PTR:
-        t->token = T_U64PTRPTR;
+        t->token = T_U64DPTR;
         break;
     default:
         return 0;
@@ -243,19 +243,15 @@ int type2size(int type)
     case T_I8:
     case T_U8:
         return 1;
-        break;
     case T_I16:
     case T_U16:
         return 2;
-        break;
     case T_I32:
     case T_U32:
         return 4;
-        break;
     case T_I64:
     case T_U64:
         return 8;
-        break;
     default:
         return 8;
     }

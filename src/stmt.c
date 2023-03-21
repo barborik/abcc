@@ -1,5 +1,7 @@
 #include "includes.h"
 
+int level;
+
 void idsym(token_t *t)
 {
     char **name = *(char **)names->get[t->val.id];
@@ -108,6 +110,7 @@ asnode_t *block_stmt(sym_t *func)
     token_t *join = malloc(sizeof(token_t));
     join->token = ST_JOIN;
 
+    level++;
     next(&t);
 
     while (next(&t))
@@ -128,7 +131,7 @@ asnode_t *block_stmt(sym_t *func)
         case T_U16:
         case T_U32:
         case T_U64:
-            var_decl(C_LOCL);
+            right = var_decl(C_LOCL);
             break;
         case T_IDENT:
             if (tokseq(2, T_IDENT, T_LPAR))
