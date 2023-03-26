@@ -141,16 +141,16 @@ asnode_t *arrindex()
 
     ident->token = ST_IDENT;
 
-    if (sym->array)
+    if (sym->prim)
+    {
+        left = mknode(ident, NULL, NULL, NULL);
+        setrval(left, 1);
+    }
+    else
     {
         addr = malloc(sizeof(token_t));
         addr->token = ST_ADDR;
         left = mknode(addr, mknode(ident, NULL, NULL, NULL), NULL, NULL);
-    }
-    else
-    {
-        left = mknode(ident, NULL, NULL, NULL);
-        setrval(left, 1);
     }
 
     // parse the square brackets
@@ -220,7 +220,7 @@ asnode_t *unexp()
         if (t->class == C_GLOB) sym = glob->get[t->val.id];
         if (t->class == C_LOCL) sym = func->local->get[t->val.id];
 
-        if (sym->array)
+        if (!sym->prim)
         {
             token_t *addr = malloc(sizeof(token_t));
             addr->token = ST_ADDR;
@@ -296,4 +296,32 @@ asnode_t *binexp(int ptp)
 
     back();
     return left;
+}
+
+int interpret(asnode_t *root)
+{
+    int left, right;
+    token_t *t = root->token;
+
+    if (root->left)
+    {
+        left = interpret(root->left);
+    }
+    if (root->right)
+    {
+        right = interpret(root->right);
+    }
+
+    switch (t->token)
+    {
+    case ST_ADD: return left + right;
+    case ST_SUB: return left - right;
+    case ST_MUL: return left * right;
+    case ST_DIV: return left / right;
+    case ST_INTLIT: return t->val.i;
+    case ST_CHARLIT: return t->val.c;
+    }
+    
+    printf("ERROR: line %d token %d\n", t->line, t->token);
+    exit(1);  
 }

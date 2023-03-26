@@ -37,10 +37,10 @@ WINDOWS - integer or pointer | rcx   | rdx    | r8    | r9     | stack
 #define NREGS_WIN64 4
 #define NREGS_ELF64 6
 
-static char *reglist64_std[] = {"rax", "rbx", "rcx", "rdx"};
-static char *reglist32_std[] = {"eax", "ebx", "ecx", "edx"};
-static char *reglist16_std[] = {"ax", "bx", "cx", "dx"};
-static char *reglist8_std[] = {"al", "bl", "cl", "dl"};
+static char *reglist64_std64[] = {"rax", "rbx", "rcx", "rdx"};
+static char *reglist32_std64[] = {"eax", "ebx", "ecx", "edx"};
+static char *reglist16_std64[] = {"ax", "bx", "cx", "dx"};
+static char *reglist8_std64[] = {"al", "bl", "cl", "dl"};
 
 static char *reglist64_win64[] = {"rcx", "rdx", "r8", "r9"};
 static char *reglist32_win64[] = {"ecx", "edx", "r8d", "r9d"};
@@ -52,19 +52,52 @@ static char *reglist32_elf64[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
 static char *reglist16_elf64[] = {"di", "si", "dx", "cx", "r8w", "r9w"};
 static char *reglist8_elf64[] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
 
-static int regalloc_std[] = {0, 0, 0, 0};
+static int regalloc_std64[] = {0, 0, 0, 0};
 static int regalloc_win64[] = {0, 0, 0, 0};
 static int regalloc_elf64[] = {0, 0, 0, 0, 0, 0};
 
-static char **reglist64;
-static char **reglist32;
-static char **reglist16;
-static char **reglist8;
+typedef struct
+{
+    int nregs;
 
-static char **reglist;
-static int *regalloc;
+    char **reglist;
+    int *regalloc;
 
-static int nregs;
+    char **reglist64;
+    char **reglist32;
+    char **reglist16;
+    char **reglist8;
+} reginfo_t;
+
+static reginfo_t std64 = {
+    .nregs = NREGS_STD64,
+    .reglist = reglist64_std64,
+    .regalloc = regalloc_std64,
+    .reglist64 = reglist64_std64,
+    .reglist32 = reglist32_std64,
+    .reglist16 = reglist16_std64,
+    .reglist8 = reglist8_std64,
+};
+
+static reginfo_t elf64 = {
+    .nregs = NREGS_ELF64,
+    .reglist = reglist64_elf64,
+    .regalloc = regalloc_elf64,
+    .reglist64 = reglist64_elf64,
+    .reglist32 = reglist32_elf64,
+    .reglist16 = reglist16_elf64,
+    .reglist8 = reglist8_elf64,
+};
+
+static reginfo_t win64 = {
+    .nregs = NREGS_STD64,
+    .reglist = reglist64_win64,
+    .regalloc = regalloc_win64,
+    .reglist64 = reglist64_win64,
+    .reglist32 = reglist32_win64,
+    .reglist16 = reglist16_win64,
+    .reglist8 = reglist8_win64,
+};
 
 // lexical tokens
 enum

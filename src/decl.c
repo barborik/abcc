@@ -70,8 +70,8 @@ int args(dlist_t *local)
 
 asnode_t *var_decl(int class)
 {
-    int size = 1, array = 0;
-    token_t *type, *ident, *tmp, *len = NULL;
+    int size = 1, prim = 1;
+    token_t *type, *ident, *tmp;
 
     next(&type); // data type
 
@@ -82,29 +82,24 @@ asnode_t *var_decl(int class)
     if (tokseq(1, T_LSQBR))
     {
         next(&tmp); // [
-        next(&len); // integer literal
+        size = interpret(binexp(0));
         next(&tmp); // ]
-        array = 1;
+        prim = 0;
     }
     next(&tmp); // semicolon
-
-    if (len)
-    {
-        size = len->val.i;
-    }
 
     // global variable
     if (class == C_GLOB || class == C_EXTN)
     {
         ident->val.id = addglob(type->token, class, *(char **)uniq->get[ident->val.id], size, NULL, NULL, NULL);
-        ((sym_t *)glob->get[ident->val.id])->array = array;
+        ((sym_t *)glob->get[ident->val.id])->prim = prim;
         return NULL;
     }
 
     // local variable
     ident->token = ST_ALLOC;
     ident->val.id = addlocl(type->token, class, *(char **)uniq->get[ident->val.id], size);
-    ((sym_t *)func->local->get[ident->val.id])->array = array;
+    ((sym_t *)func->local->get[ident->val.id])->prim = prim;
     return mknode(ident, NULL, NULL, NULL);
 }
 

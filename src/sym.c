@@ -35,7 +35,7 @@ int addlocl(int type, int class, char *name, int size)
     sym.size = size;
     sym.level = level;
     sym.offs = 0;
-    sym.array = 0;
+    sym.prim = 1;
 
     dl_add(func->local, &sym);
     return func->local->used - 1;
@@ -106,7 +106,7 @@ int addglob(int type, int class, char *name, int size, int argc, dlist_t *local,
     sym.size = size;
     sym.stack = stack;
     sym.level = 1;
-    sym.array = 0;
+    sym.prim = 1;
 
     dl_add(glob, &sym);
     return glob->used - 1;

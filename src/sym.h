@@ -21,7 +21,7 @@ typedef struct
     char *name; // symbol name
 
     /* OTHER */
-    int array; // is array boolean
+    int prim; // primitive boolean
 
     /* SHARED */
     int level; // indentation level of the symbol

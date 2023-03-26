@@ -6,14 +6,6 @@ extern U0* stdout;
 
 I32 main(I32 argc, I8** argv)
 {
-    I32 ggg;
-    I32* ptr;
-    ptr = malloc(4 * 5);
-
-    ptr[0] = 6;
-    ptr[1] = 8;
-    ptr[2] = 7;
-
-    printf("AAA %d\n", ptr);
+    printf("%s\n", argv[1]);
     return 0;
 }
