@@ -85,6 +85,72 @@ int tokseq(int n, ...)
     return 1;
 }
 
+int escseq(int c)
+{
+    switch (c)
+    {
+    case '0':
+        return '\0';
+    case 'a':
+        return '\a';
+    case 'b':
+        return '\b';
+    case 'e':
+        return '\e';
+    case 'f':
+        return '\f';
+    case 'n':
+        return '\n';
+    case 'r':
+        return '\r';
+    case 't':
+        return '\t';
+    case 'v':
+        return '\v';
+    case '\\':
+    case '\'':
+    case '\"':
+        return c;
+    }
+
+    return -1;
+}
+
+int parse2str()
+{
+    char str[512];
+
+    int c = fgetc(srcf);
+    for (int i = 0; c != '\"'; i++)
+    {
+        if (c == '\\')
+        {
+            c = fgetc(srcf);
+            c = escseq(c);
+        }
+
+        str[i] = (char)c;
+        str[i + 1] = 0;
+        c = fgetc(srcf);
+    }
+
+    return adduniq(str);
+}
+
+char parse2char()
+{
+    char c = fgetc(srcf);
+
+    if (c == '\\')
+    {
+        c = fgetc(srcf);
+        c = escseq(c);
+    }
+
+    fgetc(srcf); // remove the ending quote
+    return (char)c;
+}
+
 // parses and returns next integer in the source file stream
 // reader head must be on the first digit
 int parse2i()
@@ -125,7 +191,7 @@ void keyword(token_t *t)
 
     // no match found, store it as an identifier
     t->token = T_IDENT;
-    t->val.id = addname(kword);
+    t->val.id = adduniq(kword);
     return;
 }
 
@@ -243,11 +309,19 @@ int scan(token_t *t)
     case '.':
         t->token = T_DOT;
         break;
+    case '\'':
+        t->token = T_CHARLIT;
+        t->val.c = parse2char();
+        break;
+    case '\"':
+        t->token = T_STRLIT;
+        t->val.id = parse2str();
+        break;
     default:
         if (isdigit(c))
         {
             t->token = T_INTLIT;
-            t->val.i = parse2i(c);
+            t->val.i = parse2i();
             break;
         }
 

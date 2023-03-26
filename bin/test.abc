@@ -1,17 +1,19 @@
-extern U0 printf(I8* str);
+extern U0 printf(I8* fmt, ...);
+extern U0 putchar(I8 c);
+extern U0* malloc(I64 size);
+extern U0* fflush(I32* stream);
+extern U0* stdout;
 
-I32 main(U0)
+I32 main(I32 argc, I8** argv)
 {
-    I8  a[3];
-    I8* b;
+    I32 ggg;
+    I32* ptr;
+    ptr = malloc(4 * 5);
 
-    a[0] = 65;
-    a[1] = 10;
-    a[2] = 0;
+    ptr[0] = 6;
+    ptr[1] = 8;
+    ptr[2] = 7;
 
-    b = &a;
-
-    printf(b);
-
+    printf("AAA %d\n", ptr);
     return 0;
 }

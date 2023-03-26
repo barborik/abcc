@@ -5,9 +5,42 @@ int label = 1;
 sym_t *sym;  // last symbol
 sym_t *func; // current function
 
+void std64()
+{
+    nregs = NREGS_STD64;
+    regalloc = regalloc_std;
+    reglist = reglist64_std;
+    reglist64 = reglist64_std;
+    reglist32 = reglist32_std;
+    reglist16 = reglist16_std;
+    reglist8 = reglist8_std;
+}
+
+void elf64()
+{
+    nregs = NREGS_ELF64;
+    regalloc = regalloc_elf64;
+    reglist = reglist64_elf64;
+    reglist64 = reglist64_elf64;
+    reglist32 = reglist32_elf64;
+    reglist16 = reglist16_elf64;
+    reglist8 = reglist8_elf64;
+}
+
+void win64()
+{
+    nregs = NREGS_WIN64;
+    regalloc = regalloc_win64;
+    reglist = reglist64_win64;
+    reglist64 = reglist64_win64;
+    reglist32 = reglist32_win64;
+    reglist16 = reglist16_win64;
+    reglist8 = reglist8_win64;
+}
+
 int ralloc()
 {
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < nregs; i++)
     {
         if (!regalloc[i])
         {
@@ -26,13 +59,20 @@ void rfree(int reg)
 
 void rfree_all()
 {
-    memset(regalloc, 0, sizeof(regalloc));
+    memset(regalloc, 0, nregs * sizeof(int));
 }
 
 int asm_load(int val)
 {
     int reg = ralloc();
     fprintf(asmf, "\tmov\t\t%s, %d\n", reglist[reg], val);
+    return reg;
+}
+
+int asm_loadstr(int id)
+{
+    int reg = ralloc();
+    fprintf(asmf, "\tmov\t\t%s, S%d\n", reglist[reg], id);
     return reg;
 }
 
@@ -92,8 +132,8 @@ int asm_addr(token_t *t)
     if (t->class == C_LOCL)
     {
         sym = func->local->get[t->val.id];
-        fprintf(asmf, "\tmov\t\t%s, rsp\n", reglist[reg]);
-        fprintf(asmf, "\tadd\t\t%s, %d\n", reglist[reg], sym->offs);
+        fprintf(asmf, "\tmov\t\t%s, rbp\n", reglist[reg]);
+        fprintf(asmf, "\tsub\t\t%s, %d\n", reglist[reg], sym->offs);
     }
     else
     {
@@ -132,11 +172,6 @@ int asm_deref(int reg, int type)
     return reg;
 }
 
-void asm_addglob(sym_t *sym)
-{
-    fprintf(asmf, "%s:\t\t\t\tresb %d\n", sym->name, type2size(sym->type) * sym->size);
-}
-
 int asm_loadglob(sym_t *sym)
 {
     int reg = ralloc();
@@ -144,26 +179,22 @@ int asm_loadglob(sym_t *sym)
     switch (sym->type)
     {
     // value types
-    case T_U8:
-    case T_I8:
-        fprintf(asmf, "\tmov\t\t%s, [%s]\n", reglist8[reg], sym->name);
-        break;
-    case T_U16:
-    case T_I16:
-        fprintf(asmf, "\tmov\t\t%s, [%s]\n", reglist16[reg], sym->name);
-        break;
+    case T_U8:  fprintf(asmf, "\tmovzx\t%s, BYTE [%s]\n", reglist32[reg], sym->name); break;
+    case T_I8:  fprintf(asmf, "\tmovsx\t%s, BYTE [%s]\n", reglist32[reg], sym->name); break;
+    case T_U16: fprintf(asmf, "\tmovzx\t%s, WORD [%s]\n", reglist32[reg], sym->name); break;
+    case T_I16: fprintf(asmf, "\tmovsx\t%s, WORD [%s]\n", reglist32[reg], sym->name); break;
     case T_U32:
     case T_I32:
-        fprintf(asmf, "\tmov\t\t%s, [%s]\n", reglist32[reg], sym->name);
+        fprintf(asmf, "\tmov\t\t%s, DWORD [%s]\n", reglist32[reg], sym->name);
         break;
     case T_U64:
     case T_I64:
-        fprintf(asmf, "\tmov\t\t%s, [%s]\n", reglist64[reg], sym->name);
+        fprintf(asmf, "\tmov\t\t%s, QWORD [%s]\n", reglist64[reg], sym->name);
         break;
 
     // pointers
     default:
-        fprintf(asmf, "\tmov\t\t%s, [%s]\n", reglist64[reg], sym->name);
+        fprintf(asmf, "\tmov\t\t%s, QWORD [%s]\n", reglist64[reg], sym->name);
         break;
     }
 
@@ -205,26 +236,22 @@ int asm_loadlocl(sym_t *sym)
     switch (sym->type)
     {
     // value types
-    case T_U8:
-    case T_I8:
-        fprintf(asmf, "\tmov\t\t%s, [rsp + %d]\n", reglist8[reg], sym->offs);
-        break;
-    case T_U16:
-    case T_I16:
-        fprintf(asmf, "\tmov\t\t%s, [rsp + %d]\n", reglist16[reg], sym->offs);
-        break;
+    case T_U8:  fprintf(asmf, "\tmovzx\t%s, BYTE [rbp - %d]\n", reglist32[reg], sym->offs); break;
+    case T_I8:  fprintf(asmf, "\tmovsx\t%s, BYTE [rbp - %d]\n", reglist32[reg], sym->offs); break;
+    case T_U16: fprintf(asmf, "\tmovzx\t%s, WORD [rbp - %d]\n", reglist32[reg], sym->offs); break;
+    case T_I16: fprintf(asmf, "\tmovsx\t%s, WORD [rbp - %d]\n", reglist32[reg], sym->offs); break;
     case T_U32:
     case T_I32:
-        fprintf(asmf, "\tmov\t\t%s, [rsp + %d]\n", reglist32[reg], sym->offs);
+        fprintf(asmf, "\tmov\t\t%s, DWORD [rbp - %d]\n", reglist32[reg], sym->offs);
         break;
     case T_U64:
     case T_I64:
-        fprintf(asmf, "\tmov\t\t%s, [rsp + %d]\n", reglist64[reg], sym->offs);
+        fprintf(asmf, "\tmov\t\t%s, QWORD [rbp - %d]\n", reglist64[reg], sym->offs);
         break;
 
     // pointers
     default:
-        fprintf(asmf, "\tmov\t\t%s, [rsp + %d]\n", reglist64[reg], sym->offs);
+        fprintf(asmf, "\tmov\t\t%s, QWORD [rbp - %d]\n", reglist64[reg], sym->offs);
         break;
     }
 
@@ -237,22 +264,22 @@ int asm_storelocl(int reg, sym_t *sym)
     {
     case T_U8:
     case T_I8:
-        fprintf(asmf, "\tmov\t\t[rsp + %d], %s\n", sym->offs, reglist8[reg]);
+        fprintf(asmf, "\tmov\t\t[rbp - %d], %s\n", sym->offs, reglist8[reg]);
         break;
     case T_U16:
     case T_I16:
-        fprintf(asmf, "\tmov\t\t[rsp + %d], %s\n", sym->offs, reglist16[reg]);
+        fprintf(asmf, "\tmov\t\t[rbp - %d], %s\n", sym->offs, reglist16[reg]);
         break;
     case T_U32:
     case T_I32:
-        fprintf(asmf, "\tmov\t\t[rsp + %d], %s\n", sym->offs, reglist32[reg]);
+        fprintf(asmf, "\tmov\t\t[rbp - %d], %s\n", sym->offs, reglist32[reg]);
         break;
     case T_U64:
     case T_I64:
-        fprintf(asmf, "\tmov\t\t[rsp + %d], %s\n", sym->offs, reglist64[reg]);
+        fprintf(asmf, "\tmov\t\t[rbp - %d], %s\n", sym->offs, reglist64[reg]);
         break;
     default:
-        fprintf(asmf, "\tmov\t\t[rsp + %d], %s\n", sym->offs, reglist64[reg]);
+        fprintf(asmf, "\tmov\t\t[rbp - %d], %s\n", sym->offs, reglist64[reg]);
         break;
     }
 
@@ -317,36 +344,29 @@ void asm_jump(int l)
 int asm_func(asnode_t *root)
 {
     fprintf(asmf, "%s:\n", func->name);
+    fprintf(asmf, "\tpush\trbp\n");
+    fprintf(asmf, "\tmov\t\trbp, rsp\n");
+
+    elf64();
 
     for (int i = 0; i < func->argc; i++)
     {
         sym_t *sym = func->local->get[i];
-        fprintf(asmf, "\tsub\t\trsp, %d\n", type2size(sym->type));
-        switch (sym->type)
-        {
-        case T_I8:
-        case T_U8:
-            fprintf(asmf, "\tmov\t\t[rsp + %d], %s\n", sym->offs, reglist8[i]);
-            break;
-        case T_I16:
-        case T_U16:
-            fprintf(asmf, "\tmov\t\t[rsp + %d], %s\n", sym->offs, reglist16[i]);
-            break;
-        case T_I32:
-        case T_U32:
-            fprintf(asmf, "\tmov\t\t[rsp + %d], %s\n", sym->offs, reglist32[i]);
-            break;
-        case T_I64:
-        case T_U64:
-            fprintf(asmf, "\tmov\t\t[rsp + %d], %s\n", sym->offs, reglist64[i]);
-            break;
-        default:
-            fprintf(asmf, "\tmov\t\t[rsp + %d], %s\n", sym->offs, reglist64[i]);
-            break;
-        }
+
         sym->level = 1;
         dl_add(func->stack, &sym);
+
+        for (int j = 0; j < func->stack->used; j++)
+        {
+            sym_t *tmp = *(sym_t **)func->stack->get[j];
+            sym->offs += type2size(tmp->type);
+        }
+
+        fprintf(asmf, "\tsub\t\trsp, %d\n", type2size(sym->type));
+        asm_storelocl(i, sym);
     }
+
+    std64();
 
     gen(root, NULLREG, A_EXEC);
     return NULLREG;
@@ -354,26 +374,25 @@ int asm_func(asnode_t *root)
 
 int asm_alloc(sym_t *sym)
 {
+    dl_add(func->stack, &sym);
+    fprintf(asmf, "\tsub\t\trsp, %d\n", type2size(sym->type) * sym->size);
     for (int i = 0; i < func->stack->used; i++)
     {
         sym_t *tmp = *(sym_t **)func->stack->get[i];
-        tmp->offs += type2size(sym->type) * sym->size;
+        sym->offs += type2size(tmp->type) * tmp->size;
     }
-
-    dl_add(func->stack, &sym);
-    fprintf(asmf, "\tsub\t\trsp, %d\n", type2size(sym->type) * sym->size);
     return NULLREG;
 }
 
 int asm_call(asnode_t *args, sym_t *sym)
 {
-    int reg, align = 0;
+    int reg = NULLREG, align = 0;
 
+    //memset(regalloc_elf64, 0, NREGS_ELF64 * sizeof(int));
+    elf64();
     rfree_all();
-
     gen(args, NULLREG, A_ARGS);
-
-    rfree_all();
+    std64();
 
     /*for (int i = 0; i < NREGS; i++)
     {
@@ -383,22 +402,16 @@ int asm_call(asnode_t *args, sym_t *sym)
         }
     }*/
 
-    /*for (int i = 0; i < func->local->used; i++)
-    {
-        sym_t *sym = func->local->get[i];
-        offs += sym->offs;
-    }*/
-
     for (int i = 0; i < func->stack->used; i++)
     {
-        sym_t *sym = func->local->get[i];
+        sym_t *sym = func->stack->get[i];
         align += type2size(sym->type) * sym->size;
     }
+    align = align % 16;
 
-    align = 8 - align;
-    if (align < 0)
+    if (sym->argc < 0)
     {
-        align = -align - 8;
+        fprintf(asmf, "\txor\t\trax, rax\n");
     }
 
     fprintf(asmf, "\tsub\t\trsp, %d\n", align);
@@ -423,12 +436,19 @@ int asm_call(asnode_t *args, sym_t *sym)
             fprintf(asmf, "\tpop\t\t%s\n", reglist[i]);
         }
     }*/
-
-    if (func->type == T_U0 || func->type == T_I0)
-    {
-        return NULLREG;
-    }
+    
     return reg;
+}
+
+int asm_ret(int reg)
+{
+    if (reg != NULLREG)
+    {
+        fprintf(asmf, "\tmov\t\trax, %s\n", reglist[reg]);
+    }
+    fprintf(asmf, "\tleave\n");
+    fprintf(asmf, "\tret\n\n");
+    return NULLREG;
 }
 
 void asm_stackfree()
@@ -450,21 +470,12 @@ void asm_stackfree()
     }
 }
 
-int asm_ret(int reg)
-{
-    func->level--;
-    asm_stackfree();
-    if (reg != NULLREG)
-    {
-        fprintf(asmf, "\tmov\t\trax, %s\n", reglist[reg]);
-    }
-    fprintf(asmf, "\tret\n\n");
-    return NULLREG;
-}
-
 int asm_if(asnode_t *root, int cmd)
 {
     int end, reg;
+
+    func->level++;
+
     reg = gen(root->mid, NULLREG, cmd);
     asm_cmpz(reg);
     end = label++;
@@ -472,17 +483,22 @@ int asm_if(asnode_t *root, int cmd)
     rfree_all();
     if (root->left)
     {
-        func->level++;
         gen(root->left, NULLREG, cmd);
-        func->level--;
     }
     asm_label(end);
+    
+    func->level--;
+    asm_stackfree();
+
     return NULLREG;
 }
 
 int asm_while(asnode_t *root, int cmd)
 {
     int start, end, reg;
+
+    func->level++;
+
     start = label++;
     asm_label(start);
     reg = gen(root->mid, NULLREG, cmd);
@@ -496,6 +512,9 @@ int asm_while(asnode_t *root, int cmd)
     }
     asm_jump(start);
     asm_label(end);
+
+    func->level--;
+    asm_stackfree();
 
     return NULLREG;
 }
@@ -522,33 +541,41 @@ void asm_postamble()
     }
 
     // bss section
-    fprintf(asmf,
-            "\n\tsection .bss\n");
+    fprintf(asmf, "\n\tsection .bss\n");
     for (size_t i = 0; glob && i < glob->used; i++)
     {
         sym_t *sym = glob->get[i];
         if (sym->class == C_GLOB)
         {
-            asm_addglob(sym);
+            fprintf(asmf, "%s:\t\t\t\tresb %d\n", sym->name, type2size(sym->type) * sym->size);
+        }
+    }
+
+    // data section
+    fprintf(asmf, "\n\tsection .data\n");
+    for (size_t i = 0; glob && i < glob->used; i++)
+    {
+        sym_t *sym = glob->get[i];
+        if (sym->class == C_DATA)
+        {
+            fprintf(asmf, "S%d:\t\t\t\tdb ", i);
+            for (int j = 0; j < sym->size; j++)
+            {
+                fprintf(asmf, "%d, ", sym->name[j]);
+            }
+            fprintf(asmf, "0\n");
         }
     }
 }
 
 int gen(asnode_t *root, int reg, int cmd)
 {
-    reglist = reglist64_elf64;
-    reglist64 = reglist64_elf64;
-    reglist32 = reglist32_elf64;
-    reglist16 = reglist16_elf64;
-    reglist8 = reglist8_elf64;
-    regalloc = regalloc_elf64;
-
     token_t *t;
     int leftreg = NULLREG, rightreg = NULLREG;
 
     if (!root)
     {
-        return;
+        return NULLREG;
     }
 
     t = root->token;
@@ -570,7 +597,11 @@ int gen(asnode_t *root, int reg, int cmd)
         }
     }
 
-    asm_stackfree();
+    switch (cmd)
+    {
+    case A_EXEC: std64(); break;
+    case A_ARGS: elf64(); break;
+    }
 
     // DEBUG
     fprintf(asmf, "\t; line %d\n", t->line);
@@ -582,6 +613,8 @@ int gen(asnode_t *root, int reg, int cmd)
     case ST_MUL: return asm_mul(leftreg, rightreg);
     case ST_DIV: return asm_div(leftreg, rightreg);
     case ST_INTLIT: return asm_load(t->val.i);
+    case ST_CHARLIT: return asm_load(t->val.c);
+    case ST_STRLIT: return asm_loadstr(t->val.id);
     case ST_IDENT:
         switch (t->class)
         {

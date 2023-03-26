@@ -11,6 +11,7 @@ typedef struct
     union
     {
         int i;
+        char c;
         int id;
         float f;
     } val;

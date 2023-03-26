@@ -1,7 +1,7 @@
 #ifndef __SYM_
 #define __SYM_
 
-extern dlist_t *names;
+extern dlist_t *uniq;
 extern dlist_t *glob;
 
 enum
@@ -10,6 +10,7 @@ enum
     C_LOCL, // local symbol
     C_FUNC, // function (or procedure) symbol
     C_EXTN, // extern symbol
+    C_DATA, // data section symbol (char and string literals)
 };
 
 typedef struct
@@ -18,6 +19,9 @@ typedef struct
     int size;   // number of elements
     int class;  // one of the values from the enum above
     char *name; // symbol name
+
+    /* OTHER */
+    int array; // is array boolean
 
     /* SHARED */
     int level; // indentation level of the symbol
@@ -32,7 +36,7 @@ typedef struct
     asnode_t *root; // root of the function ast
 } sym_t;
 
-int addname(char *name);
+int adduniq(char *str);
 int addglob(int type, int class, char *name, int size, int argc, dlist_t *local, asnode_t *root);
 int addlocl(int type, int class, char *name, int size);
 int findglob(char *name);

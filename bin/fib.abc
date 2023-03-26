@@ -1,13 +1,7 @@
-extern U0 printf(I8* str, I32 i);
-extern U0 putchar(I8 c);
-
-I8 str[4];
+extern U0 printf(I8* fmt, ...);
 
 U0 fib(I32 i)
 {
-    I8* ptr;
-    ptr = &str;
-
     I32 j;
     j = 0;
 
@@ -21,7 +15,7 @@ U0 fib(I32 i)
 
     while (j < i)
     {
-        printf(ptr, a);
+        printf("%d\n", a);
 
         c = a + b;
         a = b;
@@ -34,11 +28,6 @@ U0 fib(I32 i)
 
 I32 main(U0)
 {
-    str[0] = 37;
-    str[1] = 100;
-    str[2] = 10;
-    str[3] = 0;
-
     fib(10);
     return 0;
 }

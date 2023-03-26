@@ -4,7 +4,7 @@ int level;
 
 void idsym(token_t *t)
 {
-    char **name = *(char **)names->get[t->val.id];
+    char **name = *(char **)uniq->get[t->val.id];
 
     t->class = C_LOCL;
     t->val.id = findlocl(name);
@@ -56,7 +56,7 @@ asnode_t *explist()
         {
             break;
         }
-        next(&t);
+        next(&t); // ,
     }
 
     return root;
@@ -69,7 +69,7 @@ asnode_t *func_call(int semi)
 
     next(&ident);
     ident->token = ST_CALL;
-    ident->val.id = findglob(*(char **)names->get[ident->val.id]);
+    ident->val.id = findglob(*(char **)uniq->get[ident->val.id]);
 
     next(&t); // (
     left = explist();

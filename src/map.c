@@ -82,6 +82,12 @@ int un2stx(token_t *t)
     case T_INTLIT:
         t->token = ST_INTLIT;
         break;
+    case T_CHARLIT:
+        t->token = ST_CHARLIT;
+        break;
+    case T_STRLIT:
+        t->token = ST_STRLIT;
+        break;
     case T_IDENT:
         t->token = ST_IDENT;
         idsym(t);

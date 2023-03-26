@@ -1,35 +1,29 @@
 #include "includes.h"
 
-dlist_t *names = NULL;
+dlist_t *uniq = NULL;
 dlist_t *glob = NULL;
 
-int addname(char *name)
+int adduniq(char *str)
 {
-    if (!names)
+    if (!uniq)
     {
-        names = malloc(sizeof(dlist_t));
-        dl_init(names, sizeof(char *));
+        uniq = malloc(sizeof(dlist_t));
+        dl_init(uniq, sizeof(char *));
     }
 
-    for (int i = 0; i < names->used; i++)
+    for (int i = 0; i < uniq->used; i++)
     {
-        if (!strncmp(*(char **)names->get[i], name, strlen(name)))
+        if (!strcmp(*(char **)uniq->get[i], str))
         {
             return i;
         }
     }
 
-    char *final = malloc((strlen(name) + 2) * sizeof(char));
+    char *final = malloc((strlen(str) + 1) * sizeof(char));
+    strcpy(final, str);
 
-    strcpy(final, name);
-    if (strcmp(name, "main"))
-    {
-        final[strlen(name) * sizeof(char)] = '_';
-        final[(strlen(name) + 1) * sizeof(char)] = 0;
-    }
-
-    dl_add(names, &final);
-    return names->used - 1;
+    dl_add(uniq, &final);
+    return uniq->used - 1;
 }
 
 int addlocl(int type, int class, char *name, int size)
@@ -41,6 +35,7 @@ int addlocl(int type, int class, char *name, int size)
     sym.size = size;
     sym.level = level;
     sym.offs = 0;
+    sym.array = 0;
 
     dl_add(func->local, &sym);
     return func->local->used - 1;
@@ -51,7 +46,7 @@ int findlocl(char *name)
     for (int i = 0; i < func->local->used; i++)
     {
         sym_t *sym = func->local->get[i];
-        if (!strncmp(name, sym->name, strlen(name)))
+        if (!strcmp(name, sym->name))
         {
             return i;
         }
@@ -90,9 +85,12 @@ int addglob(int type, int class, char *name, int size, int argc, dlist_t *local,
         dl_init(glob, sizeof(sym_t));
     }
 
-    if (class == C_EXTN)
+    char *final = malloc((strlen(name) + 2) * sizeof(char));
+    strcpy(final, name);
+    if (strcmp(name, "main") && class != C_EXTN && (type != T_STRLIT || type != T_CHARLIT))
     {
-        name[strlen(name) - 1] = 0;
+        final[strlen(name) * sizeof(char)] = '_';
+        final[(strlen(name) + 1) * sizeof(char)] = 0;
     }
 
     dlist_t *stack = malloc(sizeof(dlist_t));
@@ -101,13 +99,14 @@ int addglob(int type, int class, char *name, int size, int argc, dlist_t *local,
     sym_t sym;
     sym.type = type;
     sym.class = class;
-    sym.name = name;
+    sym.name = final;
     sym.argc = argc;
     sym.local = local;
     sym.root = root;
     sym.size = size;
     sym.stack = stack;
     sym.level = 1;
+    sym.array = 0;
 
     dl_add(glob, &sym);
     return glob->used - 1;

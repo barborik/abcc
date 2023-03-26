@@ -33,8 +33,14 @@ WINDOWS - integer or pointer | rcx   | rdx    | r8    | r9     | stack
 
 // register list
 // https://en.wikibooks.org/wiki/X86_Assembly/X86_Architecture
-#define NARGS_WIN64 4
-#define NARGS_ELF64 6
+#define NREGS_STD64 4
+#define NREGS_WIN64 4
+#define NREGS_ELF64 6
+
+static char *reglist64_std[] = {"rax", "rbx", "rcx", "rdx"};
+static char *reglist32_std[] = {"eax", "ebx", "ecx", "edx"};
+static char *reglist16_std[] = {"ax", "bx", "cx", "dx"};
+static char *reglist8_std[] = {"al", "bl", "cl", "dl"};
 
 static char *reglist64_win64[] = {"rcx", "rdx", "r8", "r9"};
 static char *reglist32_win64[] = {"ecx", "edx", "r8d", "r9d"};
@@ -43,9 +49,10 @@ static char *reglist8_win64[] = {"cl", "dl", "r8b", "r9b"};
 
 static char *reglist64_elf64[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 static char *reglist32_elf64[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
-static char *reglist16_elf64[] = {"di", "si", "rdx", "cx", "r8w", "r9w"};
+static char *reglist16_elf64[] = {"di", "si", "dx", "cx", "r8w", "r9w"};
 static char *reglist8_elf64[] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
 
+static int regalloc_std[] = {0, 0, 0, 0};
 static int regalloc_win64[] = {0, 0, 0, 0};
 static int regalloc_elf64[] = {0, 0, 0, 0, 0, 0};
 
@@ -56,6 +63,8 @@ static char **reglist8;
 
 static char **reglist;
 static int *regalloc;
+
+static int nregs;
 
 // lexical tokens
 enum
@@ -85,7 +94,9 @@ enum
     T_OP_END,
 
     T_LIT_START,
-    T_INTLIT, // integer literal
+    T_INTLIT,  // integer literal
+    T_STRLIT,  // string literal
+    T_CHARLIT, // character literal
     T_LIT_END,
 
     T_TYPE_START,
@@ -203,6 +214,8 @@ enum
     /* === LITERALS === */
     ST_LIT_START,
     ST_INTLIT,
+    ST_STRLIT,
+    ST_CHARLIT,
     ST_LIT_END,
 
     /* === BLOCK STATEMENTS === */

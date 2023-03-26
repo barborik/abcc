@@ -8,67 +8,69 @@ void typemod(token_t *type)
     {
         next(&t);
 
-        if (isvaltype(type))
+        if (isvaltype(type->token))
         {
             val2ptr(type);
         }
-        else if (isptr(type))
+        else if (isptr(type->token))
         {
             ptr2dptr(type);
         }
     }
 }
 
-dlist_t *args()
+int args(dlist_t *local)
 {
+    int argc = 0;
     token_t *type, *ident, *tmp;
-    dlist_t *local = malloc(sizeof(dlist_t));
-
-    dl_init(local, sizeof(sym_t));
 
     next(&tmp); // (
 
     while (1)
     {
+        if (tokseq(3, T_DOT, T_DOT, T_DOT))
+        {
+            next(&tmp); // .
+            next(&tmp); // .
+            next(&tmp); // .
+            argc = -1;
+            break;
+        }
+
         next(&type); // data type
         typemod(type);
 
         if (type->token == T_U0 || type->token == T_I0)
         {
-            next(&type); // )
             break;
         }
 
         next(&ident); // ident
-        next(&tmp);   // , or )
 
         sym_t sym;
         sym.type = type->token;
         sym.class = C_LOCL;
         sym.size = 1;
-        sym.name = *(char **)names->get[ident->val.id];
-
+        sym.name = *(char **)uniq->get[ident->val.id];
         sym.offs = 0;
-        for (int i = 0; i < local->used; i++)
-        {
-            sym_t *tmp = local->get[i];
-            sym.offs += type2size(tmp->type);
-        }
 
         dl_add(local, &sym);
+        argc++;
 
-        if (tmp->token == T_RPAR)
+        if (tokseq(1, T_RPAR))
         {
             break;
         }
+        next(&tmp); // ,
     }
 
-    return local;
+    next(&tmp); // )
+    return argc;
 }
 
 asnode_t *var_decl(int class)
 {
-    int size = 1;
+    int size = 1, array = 0;
     token_t *type, *ident, *tmp, *len = NULL;
 
     next(&type); // data type
@@ -82,15 +84,7 @@ asnode_t *var_decl(int class)
         next(&tmp); // [
         next(&len); // integer literal
         next(&tmp); // ]
-
-        /*if (isvaltype(type))
-        {
-            val2ptr(type);
-        }
-        else if (isptr(type))
-        {
-            ptr2dptr(type);
-        }*/
+        array = 1;
     }
     next(&tmp); // semicolon
 
@@ -100,20 +94,23 @@ asnode_t *var_decl(int class)
     }
 
     // global variable
-    if (class == C_GLOB)
+    if (class == C_GLOB || class == C_EXTN)
     {
-        ident->val.id = addglob(type->token, class, *(char **)names->get[ident->val.id], size, NULL, NULL, NULL);
+        ident->val.id = addglob(type->token, class, *(char **)uniq->get[ident->val.id], size, NULL, NULL, NULL);
+        ((sym_t *)glob->get[ident->val.id])->array = array;
         return NULL;
     }
 
     // local variable
     ident->token = ST_ALLOC;
-    ident->val.id = addlocl(type->token, class, *(char **)names->get[ident->val.id], size);
+    ident->val.id = addlocl(type->token, class, *(char **)uniq->get[ident->val.id], size);
+    ((sym_t *)func->local->get[ident->val.id])->array = array;
     return mknode(ident, NULL, NULL, NULL);
 }
 
 void func_decl(int class)
 {
+    int argc;
     char *name;
     sym_t *sym;
     dlist_t *local;
@@ -126,22 +123,24 @@ void func_decl(int class)
     next(&ident); // identifier
     ident->token = ST_FUNC;
 
-    local = args(); // parse arguments
+    local = malloc(sizeof(dlist_t));
+    dl_init(local, sizeof(sym_t));
+    argc = args(local); // parse arguments
 
     // declaration
     if (tokseq(1, T_SEMICOLON))
     {
         next(&tmp);
-        addglob(type->token, class, *(char **)names->get[ident->val.id], NULL, local->used, NULL, NULL);
+        addglob(type->token, class, *(char **)uniq->get[ident->val.id], NULL, argc, NULL, NULL);
         return;
     }
 
     // definition
-    name = *((char **)names->get[ident->val.id]);
-    ident->val.id = findglob(names->get[ident->val.id]);
+    name = *((char **)uniq->get[ident->val.id]);
+    ident->val.id = findglob(uniq->get[ident->val.id]);
     if (ident->val.id < 0)
     {
-        ident->val.id = addglob(type->token, class, name, NULL, local->used, local, root);
+        ident->val.id = addglob(type->token, class, name, NULL, argc, local, root);
     }
 
     func = glob->get[ident->val.id];
@@ -173,6 +172,7 @@ void decl()
         case T_U32:
         case T_U64:
             next(&t);
+            typemod(t);
             if (tokseq(2, T_IDENT, T_LPAR))
             {
                 back();
@@ -187,6 +187,7 @@ void decl()
         case T_EXTERN:
             next(&t);
             next(&t);
+            typemod(t);
             if (tokseq(2, T_IDENT, T_LPAR))
             {
                 back();

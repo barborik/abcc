@@ -15,10 +15,10 @@ asnode_t *mknode(token_t *token, asnode_t *left, asnode_t *mid, asnode_t *right)
 }
 
 // checks if a given token is an operator token
-int isop(token_t *t)
+int isop(int token)
 {
-    if (t->token > T_OP_START && t->token < T_OP_END ||
-        t->token > ST_OP_START && t->token < ST_OP_END)
+    if (token > T_OP_START && token < T_OP_END ||
+        token > ST_OP_START && token < ST_OP_END)
     {
         return 1;
     }
@@ -26,9 +26,9 @@ int isop(token_t *t)
 }
 
 // checks if a given token is a type token
-int istype(token_t *t)
+int istype(int token)
 {
-    if (t->token > T_TYPE_START && t->token < T_TYPE_END)
+    if (token > T_TYPE_START && token < T_TYPE_END)
     {
         return 1;
     }
@@ -36,9 +36,9 @@ int istype(token_t *t)
 }
 
 // checks if a given token is a value type token
-int isvaltype(token_t *t)
+int isvaltype(int token)
 {
-    if (t->token > T_TYPE_VAL_START && t->token < T_TYPE_VAL_END)
+    if (token > T_TYPE_VAL_START && token < T_TYPE_VAL_END)
     {
         return 1;
     }
@@ -46,9 +46,9 @@ int isvaltype(token_t *t)
 }
 
 // checks if a given token is a pointer token
-int isptr(token_t *t)
+int isptr(int token)
 {
-    if (t->token > T_TYPE_PTR_START && t->token < T_TYPE_PTR_END)
+    if (token > T_TYPE_PTR_START && token < T_TYPE_PTR_END)
     {
         return 1;
     }
@@ -56,9 +56,9 @@ int isptr(token_t *t)
 }
 
 // checks if a given token is a double pointer token
-int isdptr(token_t *t)
+int isdptr(int token)
 {
-    if (t->token > T_TYPE_DPTR_START && t->token < T_TYPE_DPTR_END)
+    if (token > T_TYPE_DPTR_START && token < T_TYPE_DPTR_END)
     {
         return 1;
     }
@@ -66,10 +66,10 @@ int isdptr(token_t *t)
 }
 
 // checks if a given token is a literal token
-int isliteral(token_t *t)
+int isliteral(int token)
 {
-    if (t->token > T_LIT_START && t->token < T_LIT_END ||
-        t->token > ST_LIT_START && t->token < ST_LIT_END)
+    if (token > T_LIT_START && token < T_LIT_END ||
+        token > ST_LIT_START && token < ST_LIT_END)
     {
         return 1;
     }
@@ -77,9 +77,9 @@ int isliteral(token_t *t)
 }
 
 // checks if a given token is an identifier token
-int isident(token_t *t)
+int isident(int token)
 {
-    if (t->token == T_IDENT || t->token == ST_IDENT)
+    if (token == T_IDENT || token == ST_IDENT)
     {
         return 1;
     }
@@ -87,19 +87,19 @@ int isident(token_t *t)
 }
 
 // checks if a given token is a block token
-int isblock(token_t *t)
+int isblock(int token)
 {
-    if (t->token > T_BLOCK_START && t->token < T_BLOCK_END ||
-        t->token > ST_BLOCK_START && t->token < ST_BLOCK_END)
+    if (token > T_BLOCK_START && token < T_BLOCK_END ||
+        token > ST_BLOCK_START && token < ST_BLOCK_END)
     {
         return 1;
     }
     return 0;
 }
 
-int rassoc(token_t *t)
+int rassoc(int token)
 {
-    if (t->token == T_ASSIGN || t->token == ST_ASSIGN)
+    if (token == T_ASSIGN || token == ST_ASSIGN)
     {
         return 1;
     }
@@ -124,25 +124,34 @@ asnode_t *arrindex()
 
     next(&ident); // ident
 
-    if (findlocl(*(char **)names->get[ident->val.id]) < 0)
+    if (findlocl(*(char **)uniq->get[ident->val.id]) < 0)
     {
         ident->class = C_GLOB;
-        ident->val.id = findglob(*(char **)names->get[ident->val.id]);
+        ident->val.id = findglob(*(char **)uniq->get[ident->val.id]);
 
         sym = glob->get[ident->val.id];
     }
     else
     {
         ident->class = C_LOCL;
-        ident->val.id = findlocl(*(char **)names->get[ident->val.id]);
+        ident->val.id = findlocl(*(char **)uniq->get[ident->val.id]);
 
         sym = func->local->get[ident->val.id];
     }
 
     ident->token = ST_IDENT;
-    addr = malloc(sizeof(token_t));
-    addr->token = ST_ADDR;
-    left = mknode(addr, mknode(ident, NULL, NULL, NULL), NULL, NULL);
+
+    if (sym->array)
+    {
+        addr = malloc(sizeof(token_t));
+        addr->token = ST_ADDR;
+        left = mknode(addr, mknode(ident, NULL, NULL, NULL), NULL, NULL);
+    }
+    else
+    {
+        left = mknode(ident, NULL, NULL, NULL);
+        setrval(left, 1);
+    }
 
     // parse the square brackets
     next(&lbr); // [
@@ -172,19 +181,27 @@ asnode_t *arrindex()
 // build an unary expression
 asnode_t *unexp()
 {
-    asnode_t *root;
     token_t *t;
+    asnode_t *root;
+    sym_t *sym = NULL;
 
     next(&t);
 
     switch (t->token)
     {
+    case T_STRLIT:
+        un2stx(t);
+        char *str = *(char **)uniq->get[t->val.id];
+        t->val.id = findglob(str);
+        if (t->val.id < 0)
+        {
+            t->val.id = addglob(T_STRLIT, C_DATA, str, strlen(str), NULL, NULL, NULL);
+        }
+        return mknode(t, NULL, NULL, NULL);
     case T_IDENT:
         back();
-        if (tokseq(2, T_IDENT, T_LPAR))
-            return func_call(0);
-        if (tokseq(2, T_IDENT, T_LSQBR))
-            return arrindex();
+        if (tokseq(2, T_IDENT, T_LPAR))  return func_call(0);
+        if (tokseq(2, T_IDENT, T_LSQBR)) return arrindex();
         next(&t);
         break;
     case T_LPAR:
@@ -198,7 +215,21 @@ asnode_t *unexp()
     root = mknode(t, NULL, NULL, NULL);
     setrval(root, 1);
 
-    if (!isliteral(t) && !isident(t))
+    if (isident(t->token))
+    {
+        if (t->class == C_GLOB) sym = glob->get[t->val.id];
+        if (t->class == C_LOCL) sym = func->local->get[t->val.id];
+
+        if (sym->array)
+        {
+            token_t *addr = malloc(sizeof(token_t));
+            addr->token = ST_ADDR;
+            root = mknode(addr, root, NULL, NULL);
+            setrval(root, 1);
+        }
+    }
+
+    if (!isliteral(t->token) && !isident(t->token))
     {
         root->left = unexp();
     }
@@ -217,8 +248,18 @@ asnode_t *binexp(int ptp)
     // bin2stx(token_l);
     left = unexp();
 
+    if (left->token->token == T_STRLIT)
+    {
+        return left;
+    }
+
+    if (left->left && left->token->token == ST_ADDR && left->left->token->token == ST_IDENT)
+    {
+        setrval(left->left, 0);
+    }
+
     // operator (if available)
-    if (!next(&op) || !isop(op))
+    if (!next(&op) || !isop(op->token))
     {
         back();
         return left;
@@ -246,7 +287,7 @@ asnode_t *binexp(int ptp)
 
         left = mknode(op, left, NULL, right);
 
-        if (!next(&op) || !isop(op))
+        if (!next(&op) || !isop(op->token))
         {
             back();
             return left;

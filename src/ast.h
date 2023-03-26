@@ -18,12 +18,12 @@ typedef struct asnode
 int getrval(asnode_t *node);
 void setrval(asnode_t *node, int val);
 
-int isop(token_t *t);
-int istype(token_t *t);
-int isvaltype(token_t *t);
-int isptr(token_t *t);
-int isdptr(token_t *t);
-int isblock(token_t *t);
+int isop(int token);
+int istype(int token);
+int isvaltype(int token);
+int isptr(int token);
+int isdptr(int token);
+int isblock(int token);
 asnode_t *binexp(int ptp);
 asnode_t *unexp();
 asnode_t *mknode(token_t *token, asnode_t *left, asnode_t *mid, asnode_t *right);
