@@ -2,8 +2,8 @@
 
 int main(int argc, char *argv[])
 {
-    srcf = fopen(argv[1], "r");
-    asmf = fopen(argv[2], "w");
+    src_f = fopen(argv[1], "r");
+    out_f = fopen(argv[2], "w");
 
     lex();
 
@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     int skip;
     for (int i = 0; i < glob->used; i++)
     {
-        sym_t *sym = glob->get[i];
+        Sym *sym = glob->get[i];
         if (!strcmp(sym->name, "main"))
         {
             skip = i;
@@ -52,8 +52,8 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        sym_t *sym = glob->get[i];
-        if (sym->class == C_FUNC && sym->root)
+        Sym *sym = glob->get[i];
+        if (sym->root)
         {
             func = sym;
             gen(sym->root, NULLREG, A_WALK);
@@ -62,8 +62,8 @@ int main(int argc, char *argv[])
 
     asm_postamble();
 
-    fclose(srcf);
-    fclose(asmf);
+    fclose(src_f);
+    fclose(out_f);
 
     /*lex();
 

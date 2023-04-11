@@ -31,8 +31,10 @@ WINDOWS - float              | XMM0  | XMM1   | XMM2  | XMM3   | stack
 WINDOWS - integer or pointer | rcx   | rdx    | r8    | r9     | stack
 */
 
-// register list
-// https://en.wikibooks.org/wiki/X86_Assembly/X86_Architecture
+/*
+register list
+https://en.wikibooks.org/wiki/X86_Assembly/X86_Architecture
+*/
 #define NREGS_STD64 4
 #define NREGS_WIN64 4
 #define NREGS_ELF64 6
@@ -67,9 +69,9 @@ typedef struct
     char **reglist32;
     char **reglist16;
     char **reglist8;
-} reginfo_t;
+} RegInfo;
 
-static reginfo_t std64 = {
+static RegInfo std64 = {
     .nregs = NREGS_STD64,
     .reglist = reglist64_std64,
     .regalloc = regalloc_std64,
@@ -79,7 +81,7 @@ static reginfo_t std64 = {
     .reglist8 = reglist8_std64,
 };
 
-static reginfo_t elf64 = {
+static RegInfo elf64 = {
     .nregs = NREGS_ELF64,
     .reglist = reglist64_elf64,
     .regalloc = regalloc_elf64,
@@ -89,7 +91,7 @@ static reginfo_t elf64 = {
     .reglist8 = reglist8_elf64,
 };
 
-static reginfo_t win64 = {
+static RegInfo win64 = {
     .nregs = NREGS_STD64,
     .reglist = reglist64_win64,
     .regalloc = regalloc_win64,
@@ -99,110 +101,19 @@ static reginfo_t win64 = {
     .reglist8 = reglist8_win64,
 };
 
-// lexical tokens
-enum
-{
-    /*
-    start and end pseudo-tokens for comparing ranges,
-    if token is between T_OPSTART and T_OPEND then it is an operator
-    */
-    T_OP_START,
-    T_PLUS,     // +
-    T_MINUS,    // -
-    T_ASTERISK, // *
-    T_FSLASH,   // /
-    T_EQ,       // ==
-    T_NE,       // !=
-    T_GT,       // >
-    T_LT,       // <
-    T_GE,       // >=
-    T_LE,       // <=
-    T_AMP,      // &
-    T_DAMP,     // &&
-    T_PIPE,     // |
-    T_DPIPE,    // ||
-    T_EXCL,     // !
-    T_TILDA,    // ~
-    T_ASSIGN,   // =
-    T_OP_END,
+/* TYPEDEFS */
+typedef struct tok Tok;
+typedef struct sym Sym;
+typedef struct type Type;
+typedef struct node Node;
 
-    T_LIT_START,
-    T_INTLIT,  // integer literal
-    T_STRLIT,  // string literal
-    T_CHARLIT, // character literal
-    T_LIT_END,
+/* EXTERNS */
+extern Sym *func;
+extern Type type;
+extern FILE *src_f;
+extern FILE *out_f;
 
-    T_TYPE_START,
-    // value types
-    T_TYPE_VAL_START,
-    T_I0, // void
-    T_U0, // void
-
-    T_I8,  // signed 8bit integer  (char)
-    T_I16, // signed 16bit integer (short)
-    T_I32, // signed 32bit integer (int)
-    T_I64, // signed 64bit integer (long)
-
-    T_U8,  // unsigned 8bit integer  (unsigned char)
-    T_U16, // unsigned 16bit integer (unsigned short)
-    T_U32, // unsigned 32bit integer (unsigned int)
-    T_U64, // unsigned 64bit integer (unsigned long)
-    T_TYPE_VAL_END,
-
-    // pointers
-    T_TYPE_PTR_START,
-    T_I0PTR,
-    T_U0PTR,
-
-    T_I8PTR,
-    T_I16PTR,
-    T_I32PTR,
-    T_I64PTR,
-
-    T_U8PTR,
-    T_U16PTR,
-    T_U32PTR,
-    T_U64PTR,
-    T_TYPE_PTR_END,
-
-    // double pointers
-    T_TYPE_DPTR_START,
-    T_I0DPTR,
-    T_U0DPTR,
-
-    T_I8DPTR,
-    T_I16DPTR,
-    T_I32DPTR,
-    T_I64DPTR,
-
-    T_U8DPTR,
-    T_U16DPTR,
-    T_U32DPTR,
-    T_U64DPTR,
-    T_TYPE_DPTR_END,
-    T_TYPE_END,
-
-    T_BLOCK_START,
-    T_IF,    // if statement
-    T_WHILE, // while loop
-    T_BLOCK_END,
-
-    // TODO: sort these
-    T_EXTERN,    // extern
-    T_RETURN,    // return
-    T_SEMICOLON, // ;
-    T_IDENT,     // identifier
-    T_LPAR,      // (
-    T_RPAR,      // )
-    T_LBRACE,    // {
-    T_RBRACE,    // }
-    T_LSQBR,     // [
-    T_RSQBR,     // ]
-    T_COMMA,     // ,
-    T_DOT,       // .
-};
-
-// operator precedence table
+/* OPERATOR PRECEDENCE TABLE */
 static int prec[] = {
     NULL, // OP_START
     /*
@@ -210,17 +121,93 @@ static int prec[] = {
     1, 1, 2, 2, 4, 4, 3, 3, 3, 3, 1, 1, 1, 1, 0, 1, 1,
     1,    // REF &
     1,    // DEREF *
+    1,    // function call
+    1,    // increment ++
+    1,    // decrement --
     NULL, // OP_END
     NULL, // LIT_START
-    0     // INTLIT
+    0,    // INTLIT
+    0,    // STRLIT
+    0,    // CHARLIT
+    NULL, // LIT_END
+    0,    // IDENT
 };
 
-// sytax tokens
+/* LEXICAL TOKENS */
+enum
+{
+    /*
+    start and end pseudo-tokens for comparing ranges,
+    if token is between T_OPSTART and T_OPEND then it is an operator
+    */
+    LT_OP_START,
+    LT_PLUS,     // +
+    LT_MINUS,    // -
+    LT_DPLUS,    // ++
+    LT_DMINUS,   // --
+    LT_ASTERISK, // *
+    LT_FSLASH,   // /
+    LT_EQ,       // ==
+    LT_NE,       // !=
+    LT_GT,       // >
+    LT_LT,       // <
+    LT_GE,       // >=
+    LT_LE,       // <=
+    LT_AMP,      // &
+    LT_DAMP,     // &&
+    LT_PIPE,     // |
+    LT_DPIPE,    // ||
+    LT_EXCL,     // !
+    LT_TILDA,    // ~
+    LT_ASSIGN,   // =
+    LT_OP_END,
+
+    LT_LIT_START,
+    LT_INTLIT,  // integer literal
+    LT_STRLIT,  // string literal
+    LT_CHARLIT, // character literal
+    LT_LIT_END,
+
+    LT_TYPE_START,
+    LT_I0, // void
+    LT_U0, // void
+
+    LT_I8,  // signed 8bit integer  (char)
+    LT_I16, // signed 16bit integer (short)
+    LT_I32, // signed 32bit integer (int)
+    LT_I64, // signed 64bit integer (long)
+
+    LT_U8,  // unsigned 8bit integer  (unsigned char)
+    LT_U16, // unsigned 16bit integer (unsigned short)
+    LT_U32, // unsigned 32bit integer (unsigned int)
+    LT_U64, // unsigned 64bit integer (unsigned long)
+    LT_TYPE_END,
+
+    LT_BLOCK_START,
+    LT_IF,    // if
+    LT_WHILE, // while
+    LT_BLOCK_END,
+
+    LT_EXTERN,    // extern
+    LT_RETURN,    // return
+    LT_IDENT,     // identifier
+    LT_SEMICOLON, // ;
+    LT_LPAR,      // (
+    LT_RPAR,      // )
+    LT_LBRACE,    // {
+    LT_RBRACE,    // }
+    LT_LSQBR,     // [
+    LT_RSQBR,     // ]
+    LT_COMMA,     // ,
+    LT_DOT,       // .
+};
+
+/* SYNTAX TOKENS */
 enum
 {
     /* === OPERATIONS === */
     ST_OP_START,
-    // binary
+    /* BINARY */
     ST_ADD,    // +
     ST_SUB,    // -
     ST_MUL,    // *
@@ -237,33 +224,37 @@ enum
     ST_BITOR,  // |
     ST_ASSIGN, // =
 
-    // unary
+    /* UNARY */
     ST_LOGNOT, // !
     ST_BITNOT, // ~
     ST_ADDR,   // &
     ST_DEREF,  // *
+    ST_CALL,   // function call
+    ST_INC,    // ++
+    ST_DEC,    // --
     ST_OP_END,
 
     /* === LITERALS === */
     ST_LIT_START,
-    ST_INTLIT,
-    ST_STRLIT,
-    ST_CHARLIT,
+    ST_INTLIT,  // integer literal
+    ST_STRLIT,  // string literal
+    ST_CHARLIT, // character literal
     ST_LIT_END,
+
+    /* IDENTIFIER */
+    ST_IDENT, // identifier
 
     /* === BLOCK STATEMENTS === */
     ST_BLOCK_START,
-    ST_IF,
-    ST_WHILE,
+    ST_IF,    // if statement
+    ST_WHILE, // while loop
     ST_BLOCK_END,
 
-    // other
+    /* OTHER */
     ST_RETURN,    // return
     ST_SEMICOLON, // ;
-    ST_IDENT,     // identifier
-    ST_JOIN,      // token for holding asnodes together
+    ST_JOIN,      // token for holding nodes together
     ST_FUNC,      // function (or procedure)
-    ST_CALL,      // function call
     ST_ALLOC,     // stack allocation (local variable declaration)
 };
 

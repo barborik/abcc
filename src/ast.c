@@ -1,15 +1,32 @@
 #include "includes.h"
 
 // make (construct) an asnode
-asnode_t *mknode(token_t *token, asnode_t *left, asnode_t *mid, asnode_t *right)
+Node *mknode(int token, Node *left, Node *mid, Node *right)
 {
-    asnode_t *node = malloc(sizeof(asnode_t));
+    Node *node = malloc(sizeof(Node));
 
-    node->token = token;
+    node->flags = 0b00000001;
+    node->token.token = token;
     node->left = left;
     node->mid = mid;
     node->right = right;
-    node->flags = 0;
+
+    // setrval(node, 1);
+
+    return node;
+}
+
+Node *mkleaf(Tok *token, int flags)
+{
+    Node *node = malloc(sizeof(Node));
+
+    node->flags = flags;
+    node->token = *token;
+    node->left = NULL;
+    node->mid = NULL;
+    node->right = NULL;
+
+    // setrval(node, 1);
 
     return node;
 }
@@ -17,7 +34,7 @@ asnode_t *mknode(token_t *token, asnode_t *left, asnode_t *mid, asnode_t *right)
 // checks if a given token is an operator token
 int isop(int token)
 {
-    if (token > T_OP_START && token < T_OP_END ||
+    if (token > LT_OP_START && token < LT_OP_END ||
         token > ST_OP_START && token < ST_OP_END)
     {
         return 1;
@@ -28,37 +45,7 @@ int isop(int token)
 // checks if a given token is a type token
 int istype(int token)
 {
-    if (token > T_TYPE_START && token < T_TYPE_END)
-    {
-        return 1;
-    }
-    return 0;
-}
-
-// checks if a given token is a value type token
-int isvaltype(int token)
-{
-    if (token > T_TYPE_VAL_START && token < T_TYPE_VAL_END)
-    {
-        return 1;
-    }
-    return 0;
-}
-
-// checks if a given token is a pointer token
-int isptr(int token)
-{
-    if (token > T_TYPE_PTR_START && token < T_TYPE_PTR_END)
-    {
-        return 1;
-    }
-    return 0;
-}
-
-// checks if a given token is a double pointer token
-int isdptr(int token)
-{
-    if (token > T_TYPE_DPTR_START && token < T_TYPE_DPTR_END)
+    if (token > LT_TYPE_START && token < LT_TYPE_END)
     {
         return 1;
     }
@@ -68,7 +55,7 @@ int isdptr(int token)
 // checks if a given token is a literal token
 int isliteral(int token)
 {
-    if (token > T_LIT_START && token < T_LIT_END ||
+    if (token > LT_LIT_START && token < LT_LIT_END ||
         token > ST_LIT_START && token < ST_LIT_END)
     {
         return 1;
@@ -79,7 +66,7 @@ int isliteral(int token)
 // checks if a given token is an identifier token
 int isident(int token)
 {
-    if (token == T_IDENT || token == ST_IDENT)
+    if (token == LT_IDENT || token == ST_IDENT)
     {
         return 1;
     }
@@ -89,7 +76,7 @@ int isident(int token)
 // checks if a given token is a block token
 int isblock(int token)
 {
-    if (token > T_BLOCK_START && token < T_BLOCK_END ||
+    if (token > LT_BLOCK_START && token < LT_BLOCK_END ||
         token > ST_BLOCK_START && token < ST_BLOCK_END)
     {
         return 1;
@@ -99,164 +86,193 @@ int isblock(int token)
 
 int rassoc(int token)
 {
-    if (token == T_ASSIGN || token == ST_ASSIGN)
+    if (token == LT_ASSIGN || token == ST_ASSIGN)
     {
         return 1;
     }
     return 0;
 }
 
-int getrval(asnode_t *node)
+int getrval(Node *node)
 {
     return node->flags & 0b00000001;
 }
 
-void setrval(asnode_t *node, int val)
+void setrval(Node *node, int val)
 {
     (val) ? (node->flags |= 0b00000001) : (node->flags &= 0b11111110);
 }
 
-asnode_t *arrindex()
+Node *explist(void)
 {
-    sym_t *sym;
-    asnode_t *root, *left, *right;
-    token_t *ident, *addr, *lbr, *rbr, *mul, *offs;
+    Tok  *tok;
+    Node *root = NULL, *right = NULL;
 
-    next(&ident); // ident
-
-    if (findlocl(*(char **)uniq->get[ident->val.id]) < 0)
+    while (1)
     {
-        ident->class = C_GLOB;
-        ident->val.id = findglob(*(char **)uniq->get[ident->val.id]);
+        if (tokseq(1, LT_RPAR))
+        {
+            break;
+        }
 
-        sym = glob->get[ident->val.id];
-    }
-    else
-    {
-        ident->class = C_LOCL;
-        ident->val.id = findlocl(*(char **)uniq->get[ident->val.id]);
+        right = binexp(0);
+        root = mknode(ST_JOIN, root, NULL, right);
 
-        sym = func->local->get[ident->val.id];
-    }
-
-    ident->token = ST_IDENT;
-
-    if (sym->prim)
-    {
-        left = mknode(ident, NULL, NULL, NULL);
-        setrval(left, 1);
-    }
-    else
-    {
-        addr = malloc(sizeof(token_t));
-        addr->token = ST_ADDR;
-        left = mknode(addr, mknode(ident, NULL, NULL, NULL), NULL, NULL);
+        if (tokseq(1, LT_RPAR))
+        {
+            break;
+        }
+        next(&tok);
     }
 
-    // parse the square brackets
-    next(&lbr); // [
-    right = binexp(0);
-    next(&rbr); // ]
+    return root;
+}
 
-    // calculate index offset
-    offs = malloc(sizeof(token_t));
-    offs->token = ST_INTLIT;
-    offs->val.i = type2size(sym->type);
+Node *prefix(Node* leaf)
+{
+    Tok  *tok;
+    Node *root = leaf, *left;
 
-    mul = malloc(sizeof(token_t));
-    mul->token = ST_MUL;
-    right = mknode(mul, right, NULL, mknode(offs, NULL, NULL, NULL));
+    next(&tok);
+    switch (tok->token)
+    {
+    case LT_AMP:
+        root = mknode(ST_ADDR, leaf, NULL, NULL);
+        break;
+    case LT_ASTERISK:
+        left = prefix(leaf);
+        root = mknode(ST_DEREF, left, NULL, NULL);
+        break;
+    case LT_DPLUS:
+        setrval(leaf, 0);
+        left = mknode(ST_ADDR, leaf, NULL, NULL);
+        root = mknode(ST_INC, left, NULL, NULL);
+        break;
+    case LT_DMINUS:
+        setrval(leaf, 0);
+        left = mknode(ST_ADDR, leaf, NULL, NULL);
+        root = mknode(ST_DEC, left, NULL, NULL);
+        break;
+    default:
+        back();
+        break;
+    }
 
-    lbr->token = ST_ADD;
-    root = mknode(lbr, left, NULL, right);
+    return root;
+}
 
-    // dereference
-    rbr->token = ST_DEREF;
-    root = mknode(rbr, root, NULL, NULL);
-    setrval(root, 1);
+Node *postfix(Node *leaf)
+{
+    Tok  *tok, offs;
+    Node *root, *left, *right;
+
+    next(&tok);
+    switch (tok->token)
+    {
+    case LT_LPAR:
+        root = mknode(ST_CALL, leaf, explist(), NULL);
+        next(&tok);
+        break;
+    case LT_LSQBR:
+        offs.token = ST_INTLIT;
+        offs.val.i = type2size(type);
+
+        right = binexp(0);
+        right = mknode(ST_MUL, mkleaf(&offs, 0), NULL, right);
+
+        root = mknode(ST_ADD, leaf, NULL, right);
+        root = mknode(ST_DEREF, root, NULL, NULL);
+        setrval(root, 1);
+        
+        next(&tok);
+        break;
+    case LT_DPLUS:
+        left = mknode(ST_ADDR, leaf, NULL, NULL);
+        root = mknode(ST_INC, left, NULL, NULL);
+        break;
+    case LT_DMINUS:
+        left = mknode(ST_ADDR, leaf, NULL, NULL);
+        root = mknode(ST_DEC, left, NULL, NULL);
+        break;
+    default:
+        root = leaf;
+        back();
+        break;
+    }
 
     return root;
 }
 
 // build an unary expression
-asnode_t *unexp()
+Node *unexp(void)
 {
-    token_t *t;
-    asnode_t *root;
-    sym_t *sym = NULL;
+    char *str;
+    Tok  *tok;
+    Sym  *sym;
+    Node *root, *leaf = mknode(NULL, NULL, NULL, NULL);
 
-    next(&t);
+    setrval(leaf, 1);
 
-    switch (t->token)
+    root = prefix(leaf);
+
+    next(&tok);
+    un2stx(tok);
+    memset(&type, 0, sizeof(Type));
+
+    switch (tok->token)
     {
-    case T_STRLIT:
-        un2stx(t);
-        char *str = *(char **)uniq->get[t->val.id];
-        t->val.id = findglob(str);
-        if (t->val.id < 0)
+    case ST_STRLIT:
+        str = *(char **)uniq->get[tok->val.i];
+        sym = findglob(str);
+        if (!sym)
         {
-            t->val.id = addglob(T_STRLIT, C_DATA, str, strlen(str), NULL, NULL, NULL);
+            addglob(LT_I8, 1, 1, C_DATA, str, strlen(str), NULL, NULL, NULL);
         }
-        return mknode(t, NULL, NULL, NULL);
-    case T_IDENT:
-        back();
-        if (tokseq(2, T_IDENT, T_LPAR))  return func_call(0);
-        if (tokseq(2, T_IDENT, T_LSQBR)) return arrindex();
-        next(&t);
+        return mkleaf(tok, 0);
+    case LT_LPAR:
+        *leaf = *binexp(0);
+        next(&tok);
         break;
-    case T_LPAR:
-        root = binexp(0);
-        setrval(root, 1);
-        next(&t); // )
-        return root;
+    case ST_IDENT:
+        type = getsym(tok)->type;
+    default:
+        *leaf = *mkleaf(tok, leaf->flags);
+        break;
     }
-
-    un2stx(t);
-    root = mknode(t, NULL, NULL, NULL);
-    setrval(root, 1);
-
-    if (isident(t->token))
+    
+    if (type.complex)
     {
-        if (t->class == C_GLOB) sym = glob->get[t->val.id];
-        if (t->class == C_LOCL) sym = func->local->get[t->val.id];
-
-        if (!sym->prim)
-        {
-            token_t *addr = malloc(sizeof(token_t));
-            addr->token = ST_ADDR;
-            root = mknode(addr, root, NULL, NULL);
-            setrval(root, 1);
-        }
+        setrval(leaf, 0);
+        leaf = mknode(ST_ADDR, leaf, NULL, NULL);
     }
-
-    if (!isliteral(t->token) && !isident(t->token))
-    {
-        root->left = unexp();
-    }
+    
+    root = postfix(root);
 
     return root;
 }
 
 // build a binary expression with pratt parsing
-asnode_t *binexp(int ptp)
+Node *binexp(int ptp)
 {
-    token_t *op, *token_l;
-    asnode_t *left, *right, *tmp;
+    Tok  *op, *tok;
+    Node *left, *right, *tmp;
 
     // left operand
     // next(&token_l);
     // bin2stx(token_l);
-    left = unexp();
 
-    if (left->token->token == T_STRLIT)
+    left = unexp();
+    tok = &left->token;
+
+    if (tok->token == ST_STRLIT)
     {
         return left;
     }
 
-    if (left->left && left->token->token == ST_ADDR && left->left->token->token == ST_IDENT)
+    /*if (left->left && tok->token == ST_ADDR && left->left->token.token == ST_IDENT)
     {
         setrval(left->left, 0);
-    }
+    }*/
 
     // operator (if available)
     if (!next(&op) || !isop(op->token))
@@ -285,7 +301,7 @@ asnode_t *binexp(int ptp)
             setrval(right, 1);
         }
 
-        left = mknode(op, left, NULL, right);
+        left = mknode(op->token, left, NULL, right);
 
         if (!next(&op) || !isop(op->token))
         {
@@ -298,10 +314,10 @@ asnode_t *binexp(int ptp)
     return left;
 }
 
-int interpret(asnode_t *root)
+int interpret(Node *root)
 {
     int left, right;
-    token_t *t = root->token;
+    Tok *t = &root->token;
 
     if (root->left)
     {
@@ -314,14 +330,20 @@ int interpret(asnode_t *root)
 
     switch (t->token)
     {
-    case ST_ADD: return left + right;
-    case ST_SUB: return left - right;
-    case ST_MUL: return left * right;
-    case ST_DIV: return left / right;
-    case ST_INTLIT: return t->val.i;
-    case ST_CHARLIT: return t->val.c;
+    case ST_ADD:
+        return left + right;
+    case ST_SUB:
+        return left - right;
+    case ST_MUL:
+        return left * right;
+    case ST_DIV:
+        return left / right;
+    case ST_INTLIT:
+        return t->val.i;
+    case ST_CHARLIT:
+        return t->val.i;
     }
-    
+
     printf("ERROR: line %d token %d\n", t->line, t->token);
-    exit(1);  
+    exit(1);
 }

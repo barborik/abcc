@@ -1,50 +1,81 @@
 	global  main
 
 	section .text
-	; line 7
+	; line 0
 main:
 	push	rbp
 	mov		rbp, rsp
+	; line 0
+	; line 0
+	; line 0
+	; line 0
+	; line 6
 	sub		rsp, 4
-	mov		[rbp - 4], edi
-	sub		rsp, 8
-	mov		[rbp - 12], rsi
-	; line 0
-	; line 9
-	; line 0
-	; line 0
-	; line 9
-	mov		rdi, S6
-	; line 9
-	mov		rsi, QWORD [rbp - 12]
-	; line 9
-	mov		rdx, 1
-	; line 0
-	mov		rcx, 8
-	; line 0
-	imul	rdx, rcx
-	; line 9
-	add		rsi, rdx
-	; line 9
-	mov		rsi, [rsi]
-	xor		rax, rax
-	sub		rsp, 0
-	call	printf
-	add		rsp, 0
-	; line 10
+	; line 8
 	mov		rax, 0
+	; line 8
+	; line 0
+	mov		[rbp - 4], eax
 	; line 10
+	mov		rax, QWORD printf
+	; line 0
+	push	rax
+	; line 0
+	; line 0
+	; line 10
+	mov		rdi, S3
+	; line 10
+	; line 0
+	mov		rsi, rbp
+	sub		rsi, 4
+	; line 0
+	inc		QWORD [rsi]
+	mov		esi, DWORD [rsi]
+	; line 0
+	mov		rdx, rbp
+	sub		rdx, 4
+	; line 0
+	inc		QWORD [rdx]
+	mov		edx, DWORD [rdx]
+	xor		rax, rax
+	sub		rsp, 12
+	call	[rbp - 12]
+	add		rsp, 12
+	mov		rax, rax
+	add		rsp, 8
+	; line 12
+	mov		rax, QWORD printf
+	; line 0
+	push	rax
+	; line 0
+	; line 0
+	; line 12
+	mov		rdi, S3
+	; line 12
+	mov		esi, DWORD [rbp - 4]
+	; line 0
+	mov		rdx, rbp
+	sub		rdx, 4
+	; line 0
+	inc		QWORD [rdx]
+	mov		edx, DWORD [rdx]
+	xor		rax, rax
+	sub		rsp, 12
+	call	[rbp - 12]
+	add		rsp, 12
+	mov		rax, rax
+	add		rsp, 8
+	; line 14
+	mov		rax, 0
+	; line 0
 	mov		rax, rax
 	leave
 	ret
 
 	extern printf
 	extern putchar
-	extern malloc
-	extern fflush
-	extern stdout
 
 	section .bss
 
 	section .data
-S6:				db 37, 115, 10, 0
+S3:				db 37, 100, 10, 0

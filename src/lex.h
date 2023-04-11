@@ -1,24 +1,19 @@
 #ifndef __LEX_
 #define __LEX_
 
-extern FILE *srcf;
-extern dlist_t *tokens;
-
-typedef struct
+struct tok
 {
     int token;
-    int class;
     union
     {
-        int i;
-        char c;
-        int id;
-        float f;
+        char    c;
+        long    i;
+        double  f;
     } val;
     int line;
-} token_t;
+};
 
-int next(token_t **t);
+int next(Tok **t);
 int back();
 void reset();
 int tokseq(int n, ...);

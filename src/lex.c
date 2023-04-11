@@ -1,20 +1,19 @@
 #include "includes.h"
 
 int line = 1;
-FILE *srcf;
 dlist_t *tokens;
 size_t tindex = 0;
 
 // sets the passed token to the next token available
 // returns 1 on success and 0 on failure
-int next(token_t **t)
+int next(Tok **t)
 {
     if (tindex > tokens->used - 1)
     {
         return 0;
     }
 
-    *t = ((token_t *)tokens->get[tindex]);
+    *t = ((Tok *)tokens->get[tindex]);
     tindex++;
     return 1;
 }
@@ -44,7 +43,7 @@ int nextc()
     int c;
     do
     {
-        c = fgetc(srcf);
+        c = fgetc(src_f);
         if (c == '\n')
         {
             line++;
@@ -57,14 +56,14 @@ int nextc()
 // matches token sequence
 int tokseq(int n, ...)
 {
-    token_t *t;
+    Tok *tok;
     va_list list;
     va_start(list, n);
 
     for (int i = 0; i < n; i++)
     {
-        next(&t);
-        if (va_arg(list, int) != t->token)
+        next(&tok);
+        if (va_arg(list, int) != tok->token)
         {
             for (int j = 0; j < i + 1; j++)
             {
@@ -120,18 +119,18 @@ int parse2str()
 {
     char str[512];
 
-    int c = fgetc(srcf);
+    int c = fgetc(src_f);
     for (int i = 0; c != '\"'; i++)
     {
         if (c == '\\')
         {
-            c = fgetc(srcf);
+            c = fgetc(src_f);
             c = escseq(c);
         }
 
         str[i] = (char)c;
         str[i + 1] = 0;
-        c = fgetc(srcf);
+        c = fgetc(src_f);
     }
 
     return adduniq(str);
@@ -139,15 +138,15 @@ int parse2str()
 
 char parse2char()
 {
-    char c = fgetc(srcf);
+    char c = fgetc(src_f);
 
     if (c == '\\')
     {
-        c = fgetc(srcf);
+        c = fgetc(src_f);
         c = escseq(c);
     }
 
-    fgetc(srcf); // remove the ending quote
+    fgetc(src_f); // remove the ending quote
     return (char)c;
 }
 
@@ -155,7 +154,7 @@ char parse2char()
 // reader head must be on the first digit
 int parse2i()
 {
-    fseek(srcf, -1, SEEK_CUR);
+    fseek(src_f, -1, SEEK_CUR);
     int c = nextc(), v = 0;
 
     while (isdigit(c))
@@ -164,23 +163,23 @@ int parse2i()
         c = nextc();
     }
 
-    fseek(srcf, -1, SEEK_CUR);
+    fseek(src_f, -1, SEEK_CUR);
     return v;
 }
 
-void keyword(token_t *t)
+void keyword(Tok *t)
 {
     // load the keyword
-    fseek(srcf, -1, SEEK_CUR);
+    fseek(src_f, -1, SEEK_CUR);
     char kword[1024];
-    int i = 0, c = fgetc(srcf);
+    int i = 0, c = fgetc(src_f);
     while (isalpha(c) || isdigit(c))
     {
         kword[i] = c;
-        c = fgetc(srcf);
+        c = fgetc(src_f);
         i++;
     }
-    fseek(srcf, -1, SEEK_CUR);
+    fseek(src_f, -1, SEEK_CUR);
     kword[i] = 0;
 
     // try to match the keyword
@@ -190,14 +189,14 @@ void keyword(token_t *t)
     }
 
     // no match found, store it as an identifier
-    t->token = T_IDENT;
-    t->val.id = adduniq(kword);
+    t->token = LT_IDENT;
+    t->val.i = adduniq(kword);
     return;
 }
 
 // scans the next token
 // returns 1 on success and 0 on failure
-int scan(token_t *t)
+int scan(Tok *t)
 {
     int c = nextc();
     switch (c)
@@ -207,120 +206,134 @@ int scan(token_t *t)
 
     // operators
     case '+':
-        t->token = T_PLUS;
+        if (fgetc(src_f) == '+')
+        {
+            t->token = LT_DPLUS;
+            break;
+        }
+        fseek(src_f, -1, SEEK_CUR);
+
+        t->token = LT_PLUS;
         break;
     case '-':
-        t->token = T_MINUS;
+        if (fgetc(src_f) == '-')
+        {
+            t->token = LT_DMINUS;
+            break;
+        }
+        fseek(src_f, -1, SEEK_CUR);
+
+        t->token = LT_MINUS;
         break;
     case '*':
-        t->token = T_ASTERISK;
+        t->token = LT_ASTERISK;
         break;
     case '/':
-        t->token = T_FSLASH;
+        t->token = LT_FSLASH;
         break;
     case '>':
-        if (fgetc(srcf) == '=')
+        if (fgetc(src_f) == '=')
         {
-            t->token = T_GE;
+            t->token = LT_GE;
             break;
         }
-        fseek(srcf, -1, SEEK_CUR);
+        fseek(src_f, -1, SEEK_CUR);
 
-        t->token = T_GT;
+        t->token = LT_GT;
         break;
     case '<':
-        if (fgetc(srcf) == '=')
+        if (fgetc(src_f) == '=')
         {
-            t->token = T_LE;
+            t->token = LT_LE;
             break;
         }
-        fseek(srcf, -1, SEEK_CUR);
+        fseek(src_f, -1, SEEK_CUR);
 
-        t->token = T_LT;
+        t->token = LT_LT;
         break;
     case '!':
-        if (fgetc(srcf) == '=')
+        if (fgetc(src_f) == '=')
         {
-            t->token = T_NE;
+            t->token = LT_NE;
             break;
         }
-        fseek(srcf, -1, SEEK_CUR);
+        fseek(src_f, -1, SEEK_CUR);
 
-        t->token = T_EXCL;
+        t->token = LT_EXCL;
         break;
     case '~':
-        t->token = T_TILDA;
+        t->token = LT_TILDA;
         break;
     case '&':
-        if (fgetc(srcf) == '&')
+        if (fgetc(src_f) == '&')
         {
-            t->token = T_DAMP;
+            t->token = LT_DAMP;
             break;
         }
-        fseek(srcf, -1, SEEK_CUR);
+        fseek(src_f, -1, SEEK_CUR);
 
-        t->token = T_AMP;
+        t->token = LT_AMP;
         break;
     case '|':
-        if (fgetc(srcf) == '|')
+        if (fgetc(src_f) == '|')
         {
-            t->token = T_DPIPE;
+            t->token = LT_DPIPE;
             break;
         }
-        fseek(srcf, -1, SEEK_CUR);
+        fseek(src_f, -1, SEEK_CUR);
 
-        t->token = T_PIPE;
+        t->token = LT_PIPE;
         break;
     // other
     case '=':
-        if (fgetc(srcf) == '=')
+        if (fgetc(src_f) == '=')
         {
-            t->token = T_EQ;
+            t->token = LT_EQ;
             break;
         }
-        fseek(srcf, -1, SEEK_CUR);
+        fseek(src_f, -1, SEEK_CUR);
 
-        t->token = T_ASSIGN;
+        t->token = LT_ASSIGN;
         break;
     case ';':
-        t->token = T_SEMICOLON;
+        t->token = LT_SEMICOLON;
         break;
     case '(':
-        t->token = T_LPAR;
+        t->token = LT_LPAR;
         break;
     case ')':
-        t->token = T_RPAR;
+        t->token = LT_RPAR;
         break;
     case '[':
-        t->token = T_LSQBR;
+        t->token = LT_LSQBR;
         break;
     case ']':
-        t->token = T_RSQBR;
+        t->token = LT_RSQBR;
         break;
     case '{':
-        t->token = T_LBRACE;
+        t->token = LT_LBRACE;
         break;
     case '}':
-        t->token = T_RBRACE;
+        t->token = LT_RBRACE;
         break;
     case ',':
-        t->token = T_COMMA;
+        t->token = LT_COMMA;
         break;
     case '.':
-        t->token = T_DOT;
+        t->token = LT_DOT;
         break;
     case '\'':
-        t->token = T_CHARLIT;
-        t->val.c = parse2char();
+        t->token = LT_CHARLIT;
+        t->val.i = parse2char();
         break;
     case '\"':
-        t->token = T_STRLIT;
-        t->val.id = parse2str();
+        t->token = LT_STRLIT;
+        t->val.i = parse2str();
         break;
     default:
         if (isdigit(c))
         {
-            t->token = T_INTLIT;
+            t->token = LT_INTLIT;
             t->val.i = parse2i();
             break;
         }
@@ -336,9 +349,9 @@ int scan(token_t *t)
 void lex()
 {
     tokens = malloc(sizeof(dlist_t));
-    dl_init(tokens, sizeof(token_t));
+    dl_init(tokens, sizeof(Tok));
 
-    token_t t;
+    Tok t;
     while (scan(&t))
     {
         dl_add(tokens, &t);

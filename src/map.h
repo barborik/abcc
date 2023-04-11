@@ -1,14 +1,8 @@
 #ifndef __MAP_
 #define __MAP_
 
-int un2stx(token_t *t);
-int bin2stx(token_t *t);
-int stmt2stx(token_t *t);
-
-int val2ptr(token_t *t);
-int ptr2val(token_t *t);
-int ptr2dptr(token_t *t);
-
-int type2size(int type);
+int un2stx(Tok *t);
+int bin2stx(Tok *t);
+int type2size(Type type);
 
 #endif
