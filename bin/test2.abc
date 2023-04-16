@@ -3,11 +3,9 @@ extern U0 putchar(I8 c);
 
 I32 main(U0)
 {
-    I32 abc[4];
+    I32 abc;
 
-    abc[2] = 8;
-
-    printf("%d\n", abc[2]);
+    abc;
 
     return 0;
 }

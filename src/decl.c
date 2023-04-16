@@ -66,19 +66,27 @@ int args(dlist_t *local)
     return argc;
 }
 
-Node *var_decl(int class)
+Node *var_decl(int class, Type type_)
 {
+    char *name;
+    int size = 1, complex = 0, addr;
     Sym *sym;
     Tok *type, *ident, *t;
-    int size = 1, complex = 0, addr;
-    char *name;
+    Node *root, *right;
 
-    next(&type); // data type
+    if (!type_.type)
+    {
+        next(&type); // data type
+        addr = typemod(); // pointer modifiers
 
-    // pointer modifiers
-    addr = typemod();
+        type_.type = type->token;
+        type_.addr = addr;
+    }
 
     next(&ident); // identifier
+    // if (ident->token == LT_SEMICOLON) return NULL;
+
+    ident->token = ST_IDENT;
     name = *(char **)uniq->get[ident->val.i];
 
     if (tokseq(1, LT_LSQBR))
@@ -89,21 +97,37 @@ Node *var_decl(int class)
         complex = 1;
     }
 
-    next(&t); // semicolon
-
     // global variable
     if (class == C_GLOB || class == C_EXTN)
     {
-        addglob(type->token, addr, complex, class, name, size, NULL, NULL, NULL);
+        next(&t); // semicolon
+        addglob(type_.type, type_.addr, complex, class, name, size, NULL, NULL, NULL);
         sym = getsym(ident);
         return NULL;
     }
 
-    // local variable
-    ident->token = ST_ALLOC;
-    sym = addlocl(type->token, addr, complex, class, name, size);
+    sym = addlocl(type_.type, type_.addr, complex, class, name, size);
 
-    return mkleaf(ident, 0);
+    root = mknode(ST_ALLOC, mkleaf(ident, 0), NULL, NULL);
+
+    if (tokseq(1, LT_ASSIGN))
+    {
+        next(&t);
+        right = mknode(ST_ASSIGN, binexp(0), NULL, mkleaf(ident, 0));
+        root = mknode(ST_JOIN, root, NULL, right);
+    }
+
+    next(&t); // semicolon or comma
+    switch (t->token)
+    {
+    case LT_SEMICOLON:
+        break;
+    case LT_COMMA:
+        root = mknode(ST_JOIN, root, NULL, var_decl(class, type_));
+        break;
+    }
+
+    return root;
 }
 
 void func_decl(int class)
@@ -175,7 +199,7 @@ void decl()
             else
             {
                 back();
-                var_decl(C_GLOB);
+                var_decl(C_GLOB, (Type){NULL});
             }
             break;
         case LT_EXTERN:
@@ -190,7 +214,7 @@ void decl()
             else
             {
                 back();
-                var_decl(C_EXTN);
+                var_decl(C_EXTN, (Type){NULL});
             }
             break;
         default:

@@ -10,6 +10,7 @@
 #include "defs.h"
 #include "lex.h"
 #include "ast.h"
+#include "exp.h"
 #include "sym.h"
 #include "kword.h"
 #include "gen.h"

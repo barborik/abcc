@@ -78,6 +78,12 @@ int match(const char *kword, Tok *t)
         return 1;
     }
 
+    if (!strcmp(kword, "for"))
+    {
+        t->token = LT_FOR;
+        return 1;
+    }
+
     /* === OTHER === */
     if (!strcmp(kword, "return"))
     {

@@ -472,15 +472,15 @@ int asm_if(Node *root, int cmd)
 
     func->level++;
 
+    // condition
     reg = gen(root->mid, NULLREG, cmd);
     asm_cmpz(reg);
     end = label++;
     asm_jumpeq(end);
+
+    // body
     rfree_all();
-    if (root->left)
-    {
-        gen(root->left, NULLREG, cmd);
-    }
+    gen(root->left, NULLREG, cmd);
     asm_label(end);
     
     func->level--;
@@ -495,17 +495,52 @@ int asm_while(Node *root, int cmd)
 
     func->level++;
 
+    // condition
     start = label++;
     asm_label(start);
     reg = gen(root->mid, NULLREG, cmd);
     asm_cmpz(reg);
+
     end = label++;
     asm_jumpeq(end);
+
+    // body
     rfree_all();
-    if (root->left)
-    {
-        gen(root->left, NULLREG, cmd);
-    }
+    gen(root->left, NULLREG, cmd);
+
+    asm_jump(start);
+    asm_label(end);
+
+    func->level--;
+    asm_stackfree();
+
+    return NULLREG;
+}
+
+int asm_for(Node *root, int cmd)
+{
+    int start, end, reg;
+
+    func->level++;
+
+    // loop variable
+    gen(root->left->left, NULLREG, cmd);
+
+    // condition
+    start = label++;
+    asm_label(start);
+
+    reg = gen(root->mid, NULLREG, cmd);
+    asm_cmpz(reg);
+    end = label++;
+    asm_jumpeq(end);
+
+    // body
+    rfree_all();
+    gen(root->left->right, NULLREG, cmd);
+
+    // increment/decrement
+    gen(root->right, NULLREG, cmd);
     asm_jump(start);
     asm_label(end);
 
@@ -517,11 +552,10 @@ int asm_while(Node *root, int cmd)
 
 int asm_incdec(int reg, char *ins)
 {
+
     if (type.addr)
     {
-        fprintf(out_f, "\t%s\t\tQWORD [%s]\n", ins, reginfo->reglist64[reg]);
-
-        asm_deref(reg);
+        fprintf(out_f, "\t%s\t\tQWORD [%s]\n", ins, reginfo->reglist[reg]);
         return reg;
     }
 
@@ -529,23 +563,22 @@ int asm_incdec(int reg, char *ins)
     {
     case LT_U8:
     case LT_I8:
-        fprintf(out_f, "\t%s\t\tBYTE [%s]\n", ins, reginfo->reglist8[reg]);
+        fprintf(out_f, "\t%s\t\tBYTE [%s]\n", ins, reginfo->reglist[reg]);
         break;
     case LT_U16:
     case LT_I16:
-        fprintf(out_f, "\t%s\t\tWORD [%s]\n", ins, reginfo->reglist16[reg]);
+        fprintf(out_f, "\t%s\t\tWORD [%s]\n", ins, reginfo->reglist[reg]);
         break;
     case LT_U32:
     case LT_I32:
-        fprintf(out_f, "\t%s\t\tDWORD [%s]\n", ins, reginfo->reglist32[reg]);
+        fprintf(out_f, "\t%s\t\tDWORD [%s]\n", ins, reginfo->reglist[reg]);
         break;
     case LT_U64:
     case LT_I64:
-        fprintf(out_f, "\t%s\t\tQWORD [%s]\n", ins, reginfo->reglist64[reg]);
+        fprintf(out_f, "\t%s\t\tQWORD [%s]\n", ins, reginfo->reglist[reg]);
         break;
     }
 
-    asm_deref(reg);
     return reg;
 }
 
@@ -636,6 +669,8 @@ int gen(Node *root, int reg, int cmd)
 
     switch (tok->token)
     {
+    case ST_LEFT: return leftreg;
+    case ST_RIGHT: return rightreg;
     case ST_ADD: return asm_add(leftreg, rightreg);
     case ST_SUB: return asm_sub(leftreg, rightreg);
     case ST_MUL: return asm_mul(leftreg, rightreg);
@@ -692,7 +727,8 @@ int gen(Node *root, int reg, int cmd)
         return leftreg;
     case ST_ADDR: return asm_addr(sym);
     case ST_ALLOC:
-        sym = getsym(tok); 
+        // printf("sym name: %s\n", sym->name);
+        // sym = getsym(&root->left->token);
         return asm_alloc(sym);
     case ST_JOIN:
         gen(root->left, NULLREG, cmd);
@@ -718,6 +754,7 @@ int gen(Node *root, int reg, int cmd)
     case ST_BITOR: return asm_or(leftreg, rightreg);
     case ST_IF: return asm_if(root, cmd);
     case ST_WHILE: return asm_while(root, cmd);
+    case ST_FOR: return asm_for(root, cmd);
     case ST_FUNC: return asm_func(root->left);
     case ST_CALL:
         //ncall++;

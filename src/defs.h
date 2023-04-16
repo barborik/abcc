@@ -186,6 +186,7 @@ enum
     LT_BLOCK_START,
     LT_IF,    // if
     LT_WHILE, // while
+    LT_FOR,   // for loop
     LT_BLOCK_END,
 
     LT_EXTERN,    // extern
@@ -248,12 +249,15 @@ enum
     ST_BLOCK_START,
     ST_IF,    // if statement
     ST_WHILE, // while loop
+    ST_FOR,   // for loop
     ST_BLOCK_END,
 
     /* OTHER */
     ST_RETURN,    // return
     ST_SEMICOLON, // ;
     ST_JOIN,      // token for holding nodes together
+    ST_LEFT,      // return left register
+    ST_RIGHT,     // return right register
     ST_FUNC,      // function (or procedure)
     ST_ALLOC,     // stack allocation (local variable declaration)
 };

@@ -3,13 +3,10 @@ extern U0 putchar(I8 c);
 
 I32 main(U0)
 {
-    I32 abc;
-
-    abc = 0;
-
-    printf("%d\n", ++abc++);
-
-    printf("%d\n", abc++);
+    for (I32 i = 0; i < 10; i++)
+    {
+        printf("Hello, World! %d\n", i);
+    }
 
     return 0;
 }

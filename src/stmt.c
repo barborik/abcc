@@ -30,6 +30,35 @@ Node *while_stmt()
     return mknode(ST_WHILE, left, mid, NULL);
 }
 
+Node *for_stmt()
+{
+    Tok *t;
+    Node *left, *mid, *right;
+
+    next(&t); // for
+    next(&t); // (
+
+    next(&t); // variable decl (+ assignment) or just assignment
+    if (istype(t->token))
+    {
+        back();
+        left = var_decl(C_LOCL, (Type){NULL});
+    }
+    else
+    {
+        left = binexp(0);
+        next(&t); // ;
+    }
+
+    mid = binexp(0);   // condition
+    next(&t);          // ;
+    right = binexp(0); // increment/decrement
+    next(&t);          // )
+
+    left = mknode(ST_JOIN, left, NULL, block_stmt());
+    return mknode(ST_FOR, left, mid, right);
+}
+
 Node *ret_stmt()
 {
     Tok *tok;
@@ -43,7 +72,7 @@ Node *ret_stmt()
     }
     else
     {
-        next(&tok); 
+        next(&tok);
     }
 
     return mknode(ST_RETURN, left, NULL, NULL);
@@ -73,13 +102,16 @@ Node *block_stmt()
         case LT_U16:
         case LT_U32:
         case LT_U64:
-            right = var_decl(C_LOCL);
+            right = var_decl(C_LOCL, (Type){NULL});
             break;
         case LT_IF:
             right = if_stmt();
             break;
         case LT_WHILE:
             right = while_stmt();
+            break;
+        case LT_FOR:
+            right = for_stmt();
             break;
         case LT_RETURN:
             right = ret_stmt();
@@ -90,6 +122,7 @@ Node *block_stmt()
         default:
             right = binexp(0);
             next(&t);
+            break;
         }
 
         if (!root)

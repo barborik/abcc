@@ -21,9 +21,6 @@ int isop(int token);
 int istype(int token);
 int isblock(int token);
 
-Node *binexp(int ptp);
-Node *unexp();
-
 Node *mknode(int token, Node *left, Node *mid, Node *right);
 Node *mkleaf(Tok *token, int flags);
 
