@@ -1,2 +1,3 @@
 extern U0 printf(I8* fmt, ...);
 extern U0 putchar(I8 c);
+extern I32 atoi(I8* str);

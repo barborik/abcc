@@ -81,7 +81,8 @@ static uint32_t base_flags; /*< Base set of lexer flags. */
 static TPP(stream_t) stdout_handle;
 #define write(fd, p, s) (void)WriteFile(fd, p, s, NULL, NULL)
 #else /* _WIN32 */
-#define stdout_handle  STDOUT_FILENO
+// #define stdout_handle  STDOUT_FILENO
+static TPP(stream_t) stdout_handle;
 #endif /* !_WIN32 */
 
 /* We prefer using unbuffered I/O to not create
@@ -669,6 +670,8 @@ int __TMP_frontend_main(int argc, char *argv[], FILE *outfile) {
 #ifdef _WIN32
 	//stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
 	stdout_handle = _get_osfhandle(fileno(outfile));
+#else
+	stdout_handle = fileno(outfile);
 #endif /* _WIN32 */
 	if (!TPP_INITIALIZE())
 		return 1;

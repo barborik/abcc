@@ -268,6 +268,8 @@ int asm_storelocl(int reg, Sym *sym)
 
 int asm_storederef(int reg0, int reg1, Sym *sym)
 {
+    type.addr--;
+
     if (type.addr)
     {
         fprintf(out_f, "\tmov\t\t[%s], %s\n", reginfo->reglist[reg1], reginfo->reglist64[reg0]);
@@ -392,7 +394,9 @@ int asm_call(int reg, Node *args)
     reginfo = tmp;
 
     tmp = reginfo; 
+    rfree_all();
     gen(args, NULLREG, A_ARGS);
+    rfree_all();
     reginfo = tmp;
 
     memcpy(reginfo->regalloc, regalloc, reginfo->nregs * sizeof(int));

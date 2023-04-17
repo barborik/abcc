@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS = -g -Wall -Wextra -Wpedantic -Wno-unused-function -I lib/tpp/
+CFLAGS = -g -Wall -Wextra -Wpedantic -Wno-unused-function
 LFLAGS = 
 
 INCL = 
@@ -8,8 +8,8 @@ LIBS =
 
 TARGET = bin/abcc
 
-SRC = $(wildcard src/*.c) lib/tpp/frontend.c lib/tpp/tpp.c
-OBJ = $(patsubst src/%.c, obj/%.o, $(SRC))
+SRC = $(wildcard src/*.c)
+OBJ = $(patsubst src/%.c, obj/%.o, $(SRC)) obj/frontend.o obj/tpp.o
 
 ifeq ($(OS),Windows_NT)
 TARGET += .exe
@@ -19,4 +19,7 @@ $(TARGET): $(OBJ)
 	$(CC) $^ -o $@ $(LIBS) $(LFLAGS)
 
 obj/%.o: src/%.c
+	$(CC) -c $< -o $@ $(INCL) $(CFLAGS)
+
+obj/%.o: lib/tpp/%.c
 	$(CC) -c $< -o $@ $(INCL) $(CFLAGS)

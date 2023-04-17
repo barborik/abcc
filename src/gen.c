@@ -74,7 +74,7 @@ int gen(Node *root, int reg, int cmd)
         return NULLREG;
     case ST_ASSIGN:
         tok = &root->right->token;
-        sym = getsym(tok);
+        // sym = getsym(tok);
 
         switch (tok->token)
         {

@@ -2172,6 +2172,4 @@ TPPFUN ptrdiff_t TPPCALL TPP_PrintComment(TPP(printer_t) printer, void *closure)
 }
 #endif /* __cplusplus */
 
-int __TMP_frontend_main(int argc, char *argv[], FILE *outfile);
-
 #endif /* !GUARD_TPP_H */

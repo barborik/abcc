@@ -77,13 +77,15 @@ Node *postfix(Node *leaf)
         next(&tok);
         break;
     case LT_LSQBR:
+        left = mknode(ST_DEREF, leaf, NULL, NULL);
+
         offs.token = ST_INTLIT;
         offs.val.i = type2size(type);
 
         right = binexp(0);
         right = mknode(ST_MUL, mkleaf(&offs, 0), NULL, right);
 
-        root = mknode(ST_ADD, leaf, NULL, right);
+        root = mknode(ST_ADD, left, NULL, right);
         //root = mknode(ST_DEREF, root, NULL, NULL);
 
         //setrval(root, 1);
@@ -238,11 +240,23 @@ Node *binexp(int ptp)
             tmp = left;
             left = right;
             right = tmp;
+
+            if (deref && left->token.token != ST_CALL)
+            {
+                deref = 0;
+                left = mknode(ST_DEREF, left, NULL, NULL);
+            }
         }
         else
         {
             setrval(left, 1);
             setrval(right, 1);
+
+            if (deref && right->token.token != ST_CALL)
+            {
+                deref = 0;
+                right = mknode(ST_DEREF, right, NULL, NULL);
+            }
         }
 
         left = mknode(op->token, left, NULL, right);

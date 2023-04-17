@@ -1,6 +1,6 @@
 #include "includes.h"
 
-#include "tpp.h"
+int __TMP_frontend_main(int argc, char *argv[], FILE *outfile);
 
 void prep(void)
 {

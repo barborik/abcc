@@ -1,5 +1,4 @@
-extern U0 printf(I8* fmt, ...);
-extern I32 atoi(I8* str);
+#include "stdlib.abh"
 
 I32 fac(I32 i)
 {

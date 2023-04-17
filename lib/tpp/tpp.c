@@ -73,6 +73,9 @@
 #endif
 #endif /* TPP_CONFIG_EXPORT */
 
+#define PRIVATE extern
+#define PRIVDEF extern
+
 #ifndef PRIVATE
 #ifdef __ELF__
 #   define PRIVDEF  __attribute__((__visibility__("private")))
