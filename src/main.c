@@ -2,8 +2,11 @@
 
 int main(int argc, char *argv[])
 {
+    src_n = argv[1];
     src_f = fopen(argv[1], "r");
     out_f = fopen(argv[2], "w");
+
+    prep();
 
     lex();
 

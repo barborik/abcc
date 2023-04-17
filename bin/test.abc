@@ -1,12 +1,8 @@
-extern U0 printf(I8* fmt, ...);
-extern U0 putchar(I8 c);
+#include "stdlib.abh"
 
 I32 main(U0)
 {
-    for (I32 i = 0; i < 10; i++)
-    {
-        printf("Hello, World! %d\n", i);
-    }
+    printf("Hello, World!\n");
 
     return 0;
 }

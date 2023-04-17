@@ -218,7 +218,7 @@ void decl()
             }
             break;
         default:
-            printf("ERROR: line %d\n", t->line);
+            printf("DECL ERROR: line %d token %d\n", t->line, t->token);
             exit(1);
         }
     }

@@ -71,7 +71,7 @@ typedef struct
     char **reglist8;
 } RegInfo;
 
-static RegInfo std64 = {
+static const RegInfo std64 = {
     .nregs = NREGS_STD64,
     .reglist = reglist64_std64,
     .regalloc = regalloc_std64,
@@ -81,7 +81,7 @@ static RegInfo std64 = {
     .reglist8 = reglist8_std64,
 };
 
-static RegInfo elf64 = {
+static const RegInfo elf64 = {
     .nregs = NREGS_ELF64,
     .reglist = reglist64_elf64,
     .regalloc = regalloc_elf64,
@@ -91,7 +91,7 @@ static RegInfo elf64 = {
     .reglist8 = reglist8_elf64,
 };
 
-static RegInfo win64 = {
+static const RegInfo win64 = {
     .nregs = NREGS_STD64,
     .reglist = reglist64_win64,
     .regalloc = regalloc_win64,
@@ -101,6 +101,21 @@ static RegInfo win64 = {
     .reglist8 = reglist8_win64,
 };
 
+#if defined(_WIN32)
+static RegInfo arg64 = win64;
+#else
+static RegInfo arg64 = elf64;
+#endif
+
+/* DEFINES */
+#define NULLREG -1
+
+#if defined(_WIN32)
+#define ALIGN 32
+#else
+#define ALIGN 16
+#endif
+
 /* TYPEDEFS */
 typedef struct tok Tok;
 typedef struct sym Sym;
@@ -108,8 +123,13 @@ typedef struct type Type;
 typedef struct node Node;
 
 /* EXTERNS */
+extern RegInfo *reginfo;
+
+extern Sym *sym;
 extern Sym *func;
 extern Type type;
+
+extern char *src_n;
 extern FILE *src_f;
 extern FILE *out_f;
 

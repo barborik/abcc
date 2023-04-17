@@ -1,9 +1,11 @@
 #include "includes.h"
 
+RegInfo *reginfo = &std64;
+
+Sym *sym;
 Sym *func;
 Type type;
 
-FILE *src_f; // preprocessor
-char *src_b; // source buffer for the lexer
-
+char *src_n;
+FILE *src_f;
 FILE *out_f;

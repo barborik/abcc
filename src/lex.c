@@ -1,6 +1,8 @@
 #include "includes.h"
 
 int line = 1;
+char *file;
+
 dlist_t *tokens;
 size_t tindex = 0;
 
@@ -41,14 +43,24 @@ void reset()
 int nextc()
 {
     int c;
+    char info[256];
+
     do
     {
         c = fgetc(src_f);
-        if (c == '\n')
+
+        switch (c)
         {
+        case '#':
+            fgets(info, 256, src_f);
+            sscanf(info, " %d \"%[^\"]\"", &line, file);
+            break;
+        case '\n':
             line++;
+            break;
         }
-    } while (c == ' ' || c == '\n' || c == '\t' || c == '\r' || c == '\f');
+
+    } while (c == ' ' || c == '\n' || c == '\t' || c == '\r' || c == '\f' || c == '#');
 
     return c;
 }
@@ -348,6 +360,7 @@ int scan(Tok *t)
 
 void lex()
 {
+    file = malloc(256);
     tokens = malloc(sizeof(dlist_t));
     dl_init(tokens, sizeof(Tok));
 

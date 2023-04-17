@@ -10,12 +10,14 @@
 #include "defs.h"
 #include "lex.h"
 #include "ast.h"
-#include "exp.h"
+#include "expr.h"
 #include "sym.h"
 #include "kword.h"
+#include "asm64.h"
 #include "gen.h"
 #include "stmt.h"
 #include "decl.h"
 #include "map.h"
+#include "prep.h"
 
 #endif
