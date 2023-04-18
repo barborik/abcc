@@ -102,19 +102,15 @@ static const RegInfo win64 = {
 };
 
 #if defined(_WIN32)
+static int ALIGN = 32;
 static RegInfo arg64 = win64;
 #else
+static int ALIGN = 16;
 static RegInfo arg64 = elf64;
 #endif
 
 /* DEFINES */
 #define NULLREG -1
-
-#if defined(_WIN32)
-#define ALIGN 32
-#else
-#define ALIGN 16
-#endif
 
 /* TYPEDEFS */
 typedef struct tok Tok;
@@ -130,6 +126,8 @@ extern Sym *func;
 extern Type type;
 
 extern char *src_n;
+extern char *out_n;
+
 extern FILE *src_f;
 extern FILE *out_f;
 

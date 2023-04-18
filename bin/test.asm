@@ -1,20 +1,20 @@
 	global  main
 
 	section .text
-	; line 0
+	; line 958464
 main:
 	push	rbp
 	mov		rbp, rsp
 	sub		rsp, 4
-	mov		[rbp - 4], edi
+	mov		[rbp - 4], ecx
 	sub		rsp, 8
-	mov		[rbp - 12], rsi
+	mov		[rbp - 12], rdx
 	; line 0
 	; line 0
 	; line 0
 	; line 0
 	; line 5
-	; line 812
+	; line 0
 	sub		rsp, 24
 	; line 7
 	mov		rax, 2
@@ -22,7 +22,7 @@ main:
 	; line 0
 	mov		rbx, rbp
 	sub		rbx, 36
-	; line -1610100496
+	; line 0
 	mov		rcx, 4
 	; line 7
 	mov		rdx, 1
@@ -30,16 +30,16 @@ main:
 	imul	rcx, rdx
 	; line 0
 	add		rbx, rcx
-	; line 0
-	; line 0
+	; line 812
+	; line 808
 	mov		[rbx], eax
 	; line 8
 	mov		rax, 16
 	; line 8
-	; line 0
+	; line 810
 	mov		rbx, rbp
 	sub		rbx, 36
-	; line -1610100496
+	; line 0
 	mov		rcx, 4
 	; line 8
 	mov		rdx, 0
@@ -58,25 +58,25 @@ main:
 	; line 0
 	; line 0
 	; line 10
-	mov		rdi, S4
+	mov		rcx, S4
 	; line 10
 	; line 0
-	mov		rsi, rbp
-	sub		rsi, 36
-	; line -1610100496
-	mov		rdx, 4
+	mov		rdx, rbp
+	sub		rdx, 36
+	; line 0
+	mov		r8, 4
 	; line 10
-	mov		rcx, 0
+	mov		r9, 0
 	; line 0
-	imul	rdx, rcx
+	imul	r8, r9
 	; line 0
-	add		rsi, rdx
+	add		rdx, r8
 	; line 0
-	mov		rsi, [rsi]
+	mov		rdx, [rdx]
 	xor		rax, rax
-	sub		rsp, 4
+	sub		rsp, 20
 	call	[rbp - 44]
-	add		rsp, 4
+	add		rsp, 20
 	mov		rax, rax
 	add		rsp, 8
 	; line 12

@@ -5,6 +5,8 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 
 #include "dlist.h"
 #include "defs.h"
@@ -19,5 +21,6 @@
 #include "decl.h"
 #include "map.h"
 #include "prep.h"
+#include "input.h"
 
 #endif
