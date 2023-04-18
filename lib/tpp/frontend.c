@@ -228,7 +228,7 @@ struct tpp_extension {
 extern struct tpp_extension const tpp_extensions[];
 extern char const *const wgroup_names[TPP(WG_COUNT) + 1];
 
-void usage(char *appname, char *subject) {
+void _usage(char *appname, char *subject) {
 	if (subject) {
 		if (!strcmp(subject, "extensions")) {
 			struct tpp_extension const *iter;
@@ -816,7 +816,7 @@ int __TMP_frontend_main(int argc, char *argv[], FILE *outfile) {
 		} else if (!strcmp(arg, "-message-format=msvc")) {
 			TPPLexer_Current->l_flags |= TPPLEXER_FLAG_MSVC_MESSAGEFORMAT;
 		} else if (!strcmp(arg, "-help") BACKWARDS(|| !strcmp(arg, "h") || !strcmp(arg, "?"))) {
-			usage(appname, argc > 1 && argv[1][0] != '-' ? argv[1] : NULL), _exit(2);
+			_usage(appname, argc > 1 && argv[1][0] != '-' ? argv[1] : NULL), _exit(2);
 		} else if (!strcmp(arg, "-version") BACKWARDS(|| !strcmp(arg, "v"))) {
 			fwrite(version, sizeof(char), sizeof(version) / sizeof(char) - 1, stderr), _exit(2);
 		} else if (!strcmp(arg, "i") BACKWARDS(|| !strcmp(arg, "-in"))) {

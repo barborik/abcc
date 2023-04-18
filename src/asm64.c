@@ -268,7 +268,7 @@ int asm_storelocl(int reg, Sym *sym)
 
 int asm_storederef(int reg0, int reg1, Sym *sym)
 {
-    type.addr--;
+    if (type.addr) type.addr--;
 
     if (type.addr)
     {

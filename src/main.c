@@ -1,7 +1,27 @@
 #include "includes.h"
 
+void usage(char *name)
+{
+    printf("usage: %s [flags] <input file(s)> [-o output file(s)]\n\n"
+           "flags:\n"
+
+           "\t-h, --help display this help message\n\n"
+
+           "\t-m <mode>\n"
+           "\t    64\t\t64-bit mode\n"
+           "\t    16\t\t16-bit mode\n\n"
+
+           "\t-cc <calling convention>\n"
+           "\t     sysv\tSystemV (Linux, most Unix variants)\n"
+           "\t     ms64\tMicrosoft x64 (Windows)\n\n",
+           name);
+}
+
 int main(int argc, char *argv[])
 {
+    //usage(argv[0]);
+    //exit(0);
+
     src_n = argv[1];
     src_f = fopen(argv[1], "r");
     out_f = fopen(argv[2], "w");

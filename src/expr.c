@@ -77,7 +77,14 @@ Node *postfix(Node *leaf)
         next(&tok);
         break;
     case LT_LSQBR:
-        left = mknode(ST_DEREF, leaf, NULL, NULL);
+        if (!type.complex)
+        {
+            left = mknode(ST_DEREF, leaf, NULL, NULL);
+        }
+        else
+        {
+            left = leaf;
+        }
 
         offs.token = ST_INTLIT;
         offs.val.i = type2size(type);

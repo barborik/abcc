@@ -1,16 +1,13 @@
 #include "stdlib.abh"
 
-I32 fac(I32 i)
-{
-    if (i == 0)
-    {
-        return 1;
-    }
-    return i * fac(i - 1);
-}
-
 I32 main(I32 argc, I8** argv)
 {
-    printf("%d\n", fac(atoi(argv[1])));
+    I32 abc[6];
+
+    abc[1] = 2;
+    abc[0] = 16;
+
+    printf("%d\n", abc[0]);
+
     return 0;
 }

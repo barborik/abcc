@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS = -g -Wall -Wextra -Wpedantic -Wno-unused-function
+CFLAGS = -g -Wall -Wextra -Wpedantic
 LFLAGS = 
 
 INCL = 
@@ -22,4 +22,4 @@ obj/%.o: src/%.c
 	$(CC) -c $< -o $@ $(INCL) $(CFLAGS)
 
 obj/%.o: lib/tpp/%.c
-	$(CC) -c $< -o $@ $(INCL) $(CFLAGS)
+	$(CC) -c $< -o $@ $(INCL)
