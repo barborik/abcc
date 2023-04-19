@@ -110,7 +110,7 @@ void input(int argc, char **argv)
 
     i++;
 
-    if (!access(argv[i], F_OK))
+    if (i < argc)
     {
         out_n = argv[i];
     }
