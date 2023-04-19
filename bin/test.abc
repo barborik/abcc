@@ -1,13 +1,25 @@
 #include "stdlib.abh"
 
+/*
+TODO:
+
+else
+typedef
+sizeof
+enum
+
+FLOATS :-|
+*/
+
 I32 main(I32 argc, I8** argv)
 {
-    I32 abc[6];
+    I8* s1 = "Hello";
+    I8* s2 = "World";
+    I8 s3[20];
 
-    abc[1] = 2;
-    abc[0] = 16;
+    I32 i = 0;
 
-    printf("%d\n", abc[0]);
+    putchar(s1[i]);
 
     return 0;
 }

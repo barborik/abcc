@@ -35,14 +35,14 @@ WINDOWS - integer or pointer | rcx   | rdx    | r8    | r9     | stack
 register list
 https://en.wikibooks.org/wiki/X86_Assembly/X86_Architecture
 */
-#define NREGS_STD64 4
+#define NREGS_STD64 14
 #define NREGS_WIN64 4
 #define NREGS_ELF64 6
 
-static char *reglist64_std64[] = {"rax", "rbx", "rcx", "rdx"};
-static char *reglist32_std64[] = {"eax", "ebx", "ecx", "edx"};
-static char *reglist16_std64[] = {"ax", "bx", "cx", "dx"};
-static char *reglist8_std64[] = {"al", "bl", "cl", "dl"};
+static char *reglist64_std64[] = {"rax", "rbx", "rcx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15"};
+static char *reglist32_std64[] = {"eax", "ebx", "ecx", "edx", "esi", "edi", "r8d", "r9d", "r10d", "r11d", "r12d", "r13d", "r14d", "r15d"};
+static char *reglist16_std64[] = {"ax", "bx", "cx", "dx", "si", "di", "r8w", "r9w", "r10w", "r11w", "r12w", "r13w", "r14w", "r15w"};
+static char *reglist8_std64[] = {"al", "bl", "cl", "dl", "sil", "dil", "r8b", "r9b", "r10b", "r11b", "r12b", "r13b", "r14b", "r15b"};
 
 static char *reglist64_win64[] = {"rcx", "rdx", "r8", "r9"};
 static char *reglist32_win64[] = {"ecx", "edx", "r8d", "r9d"};
@@ -203,13 +203,19 @@ enum
 
     LT_BLOCK_START,
     LT_IF,    // if
+    LT_ELSE,  // else
     LT_WHILE, // while
-    LT_FOR,   // for loop
+    LT_FOR,   // for
     LT_BLOCK_END,
 
-    LT_EXTERN,    // extern
-    LT_RETURN,    // return
-    LT_IDENT,     // identifier
+    LT_IDENT,    // identifier
+    LT_EXTERN,   // extern
+    LT_RETURN,   // return
+    LT_BREAK,    // break
+    LT_CONTINUE, // continue
+    LT_GOTO,     // goto
+
+    LT_COLON,     // :
     LT_SEMICOLON, // ;
     LT_LPAR,      // (
     LT_RPAR,      // )
@@ -272,6 +278,10 @@ enum
 
     /* OTHER */
     ST_RETURN,    // return
+    ST_BREAK,     // break
+    ST_CONTINUE,  // continue
+    ST_GOTO,      // goto
+    ST_LABEL,     // label
     ST_SEMICOLON, // ;
     ST_JOIN,      // token for holding nodes together
     ST_LEFT,      // return left register

@@ -1,5 +1,6 @@
 #include "includes.h"
 
+int start, end;
 int label = 1, top = 0;
 
 int ralloc(void)
@@ -305,7 +306,34 @@ void asm_label(int l)
 
 int asm_cmpset(int reg0, int reg1, char *ins)
 {
-    fprintf(out_f, "\tcmp\t\t%s, %s\n", reginfo->reglist[reg0], reginfo->reglist[reg1]);
+    if (type.addr)
+    {
+        fprintf(out_f, "\tcmp\t\t%s, %s\n", reginfo->reglist64[reg0], reginfo->reglist64[reg1]);
+        fprintf(out_f, "\t%s\t%s\n", ins, reginfo->reglist8[reg0]);
+        fprintf(out_f, "\tand\t\t%s, 0xff\n", reginfo->reglist[reg0]);
+        return reg0;
+    }
+
+    switch (type.type)
+    {
+    case LT_U8:
+    case LT_I8:
+        fprintf(out_f, "\tcmp\t\t%s, %s\n", reginfo->reglist8[reg0], reginfo->reglist8[reg1]);
+        break;
+    case LT_U16:
+    case LT_I16:
+        fprintf(out_f, "\tcmp\t\t%s, %s\n", reginfo->reglist16[reg0], reginfo->reglist16[reg1]);
+        break;
+    case LT_U32:
+    case LT_I32:
+        fprintf(out_f, "\tcmp\t\t%s, %s\n", reginfo->reglist32[reg0], reginfo->reglist32[reg1]);
+        break;
+    case LT_U64:
+    case LT_I64:
+        fprintf(out_f, "\tcmp\t\t%s, %s\n", reginfo->reglist64[reg0], reginfo->reglist64[reg1]);
+        break;
+    }
+
     fprintf(out_f, "\t%s\t%s\n", ins, reginfo->reglist8[reg0]);
     fprintf(out_f, "\tand\t\t%s, 0xff\n", reginfo->reglist[reg0]);
     return reg0;
@@ -363,7 +391,8 @@ int asm_func(Node *root)
 int asm_call(int reg, Node *args)
 {
     RegInfo *tmp;
-    int align, offs, *regalloc;
+    int align = 32, offs, *regalloc;
+    // 32 bytes ^^ shadow space
 
     // save the function pointer
     top += 8;
@@ -408,7 +437,7 @@ int asm_call(int reg, Node *args)
         align += type2size(sym->type) * sym->size;
     }*/
     //align = top % 16;
-    align = ALIGN - (top % ALIGN);
+    align += ALIGN - (top % ALIGN);
 
     fprintf(out_f, "\txor\t\trax, rax\n");
     if (align) fprintf(out_f, "\tsub\t\trsp, %d\n", align);
@@ -467,22 +496,47 @@ void asm_stackfree(void)
     }
 }
 
+int asm_break(void)
+{
+    asm_jump(end);
+    return NULLREG;
+}
+
+int asm_continue(void)
+{
+    asm_jump(start);
+    return NULLREG;
+}
+
 int asm_if(Node *root, int cmd)
 {
-    int end, reg;
+    int if_e, else_e, reg;
+
+    if_e = label++;
+    if (root->right) else_e = label++;
 
     func->level++;
 
     // condition
     reg = gen(root->mid, NULLREG, cmd);
     asm_cmpz(reg);
-    end = label++;
-    asm_jumpeq(end);
+    asm_jumpeq(if_e);
 
-    // body
+    // if body
     rfree_all();
     gen(root->left, NULLREG, cmd);
-    asm_label(end);
+    rfree_all();
+    if (root->right) asm_jump(else_e);
+    asm_label(if_e);
+
+    // else body
+    if (root->right)
+    {
+        rfree_all();
+        gen(root->right, NULLREG, cmd);
+        rfree_all();
+        asm_label(else_e);
+    }
     
     func->level--;
     asm_stackfree();
@@ -492,62 +546,106 @@ int asm_if(Node *root, int cmd)
 
 int asm_while(Node *root, int cmd)
 {
-    int start, end, reg;
+    int last_s, last_e, reg;
+
+    // save labels
+    last_s = start;
+    start = label++;
+
+    last_e = end;
+    end = label++;
 
     func->level++;
 
     // condition
-    start = label++;
     asm_label(start);
     reg = gen(root->mid, NULLREG, cmd);
     asm_cmpz(reg);
 
-    end = label++;
     asm_jumpeq(end);
 
     // body
     rfree_all();
     gen(root->left, NULLREG, cmd);
+    rfree_all();
 
     asm_jump(start);
     asm_label(end);
 
     func->level--;
     asm_stackfree();
+
+    // put labels back
+    start = last_s;
+    end = last_e;
 
     return NULLREG;
 }
 
 int asm_for(Node *root, int cmd)
 {
-    int start, end, reg;
+    int last_s, last_e, reg, enter;
 
+    // save labels
+    last_s = start;
+    start = label++;
+
+    last_e = end;
+    end = label++;
+
+    enter = label++;
     func->level++;
 
     // loop variable
+    rfree_all();
     gen(root->left->left, NULLREG, cmd);
+    rfree_all();
 
-    // condition
-    start = label++;
+    asm_jump(enter);
     asm_label(start);
 
+    // increment/decrement
+    rfree_all();
+    gen(root->right, NULLREG, cmd);
+    rfree_all();
+
+    asm_label(enter);
+
+    // condition
+    rfree_all();
     reg = gen(root->mid, NULLREG, cmd);
     asm_cmpz(reg);
-    end = label++;
     asm_jumpeq(end);
+    rfree_all();
 
     // body
     rfree_all();
     gen(root->left->right, NULLREG, cmd);
+    rfree_all();
 
-    // increment/decrement
-    gen(root->right, NULLREG, cmd);
+    // end
     asm_jump(start);
     asm_label(end);
 
     func->level--;
     asm_stackfree();
 
+    // put labels back
+    start = last_s;
+    end = last_e;
+
+    return NULLREG;
+}
+
+int asm_ulabel(char *name)
+{
+    fprintf(out_f, "%s:\n", name);
+    return NULLREG;
+}
+
+int asm_goto(char *name)
+{
+    fprintf(out_f, "\tjmp\t\t%s\n", name);
     return NULLREG;
 }
 

@@ -2,10 +2,10 @@
 
 int level;
 
-Node *if_stmt()
+Node *if_stmt(void)
 {
     Tok *t;
-    Node *left, *mid, *right;
+    Node *left, *mid, *right = NULL;
 
     next(&t);        // if
     next(&t);        // (
@@ -13,10 +13,16 @@ Node *if_stmt()
     next(&t);        // )
     left = block_stmt();
 
-    return mknode(ST_IF, left, mid, NULL);
+    if (tokseq(1, LT_ELSE))
+    {
+        next(&t); // else
+        right = block_stmt();
+    }
+
+    return mknode(ST_IF, left, mid, right);
 }
 
-Node *while_stmt()
+Node *while_stmt(void)
 {
     Tok *t;
     Node *left, *mid, *right;
@@ -30,7 +36,7 @@ Node *while_stmt()
     return mknode(ST_WHILE, left, mid, NULL);
 }
 
-Node *for_stmt()
+Node *for_stmt(void)
 {
     Tok *t;
     Node *left, *mid, *right;
@@ -39,9 +45,9 @@ Node *for_stmt()
     next(&t); // (
 
     next(&t); // variable decl (+ assignment) or just assignment
+    back();
     if (istype(t->token))
     {
-        back();
         left = var_decl(C_LOCL, (Type){NULL});
     }
     else
@@ -59,7 +65,7 @@ Node *for_stmt()
     return mknode(ST_FOR, left, mid, right);
 }
 
-Node *ret_stmt()
+Node *ret_stmt(void)
 {
     Tok *tok;
     Node *left = NULL;
@@ -78,7 +84,31 @@ Node *ret_stmt()
     return mknode(ST_RETURN, left, NULL, NULL);
 }
 
-Node *block_stmt()
+Node *label_stmt(void)
+{
+    Tok *ident, *t;
+
+    next(&ident); // identifier
+    next(&t);     // colon
+
+    ident->token = ST_IDENT;
+    addlocl(NULL, NULL, NULL, C_LOCL, *(char **)uniq->get[ident->val.i], NULL);
+    return mknode(ST_LABEL, mkleaf(ident, 0), NULL, NULL);
+}
+
+Node *goto_stmt(void)
+{
+    Tok *ident, *t;
+
+    next(&t);     // goto
+    next(&ident); // identifier
+    next(&t);     // semicolon
+
+    ident->token = ST_IDENT;
+    return mknode(ST_GOTO, mkleaf(ident, 0), NULL, NULL);
+}
+
+Node *block_stmt(void)
 {
     Tok *t;
     Node *right, *root = NULL;
@@ -104,6 +134,20 @@ Node *block_stmt()
         case LT_U64:
             right = var_decl(C_LOCL, (Type){NULL});
             break;
+        case LT_IDENT:
+            if (tokseq(2, LT_IDENT, LT_COLON))
+            {
+                right = label_stmt();
+            }
+            else
+            {
+                right = binexp(0);
+                next(&t);
+            }
+            break;
+        case LT_GOTO:
+            right = goto_stmt();
+            break;
         case LT_IF:
             right = if_stmt();
             break;
@@ -115,6 +159,16 @@ Node *block_stmt()
             break;
         case LT_RETURN:
             right = ret_stmt();
+            break;
+        case LT_BREAK:
+            right = mknode(ST_BREAK, NULL, NULL, NULL);
+            next(&t);
+            next(&t);
+            break;
+        case LT_CONTINUE:
+            right = mknode(ST_CONTINUE, NULL, NULL, NULL);
+            next(&t);
+            next(&t);
             break;
         case LT_RBRACE:
             next(&t);

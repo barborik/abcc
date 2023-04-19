@@ -307,6 +307,9 @@ int scan(Tok *t)
 
         t->token = LT_ASSIGN;
         break;
+    case ':':
+        t->token = LT_COLON;
+        break;
     case ';':
         t->token = LT_SEMICOLON;
         break;

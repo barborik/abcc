@@ -86,6 +86,7 @@ Node *postfix(Node *leaf)
             left = leaf;
         }
 
+        if (type.addr) type.addr--;
         offs.token = ST_INTLIT;
         offs.val.i = type2size(type);
 
@@ -93,9 +94,13 @@ Node *postfix(Node *leaf)
         right = mknode(ST_MUL, mkleaf(&offs, 0), NULL, right);
 
         root = mknode(ST_ADD, left, NULL, right);
-        //root = mknode(ST_DEREF, root, NULL, NULL);
 
-        //setrval(root, 1);
+        if (type.complex)
+        {
+            root = mknode(ST_DEREF, root, NULL, NULL);
+            setrval(root, 1);
+        }
+
         next(&tok);
         break;
     case LT_DPLUS:
@@ -172,7 +177,7 @@ Node *unexp(void)
     {
         root = mknode(ST_DEREF, root, NULL, NULL);
     }*/
-    if (root->token.token == ST_LEFT)
+    if (root->token.token == ST_LEFT || type.complex)
     {
         deref_ = 0;
     }

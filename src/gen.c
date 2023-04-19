@@ -45,12 +45,18 @@ int gen(Node *root, int reg, int cmd)
     case ST_MUL: return asm_mul(leftreg, rightreg);
     case ST_DIV: return asm_div(leftreg, rightreg);
     case ST_INTLIT:
-        type.type = LT_I32;
-        type.addr = 0;
+        if (type.type > LT_I32)
+        {
+            type.type = LT_I32;
+            type.addr = 0;
+        }
         return asm_load(tok->val.i);
     case ST_CHARLIT: 
-        type.type = LT_I8;
-        type.addr = 0;
+        if (type.type > LT_I8)
+        {
+            type.type = LT_I8;
+            type.addr = 0;
+        }
         return asm_load(tok->val.c);
     case ST_STRLIT:
         id = globid(tok);
@@ -126,6 +132,10 @@ int gen(Node *root, int reg, int cmd)
     case ST_RETURN: return asm_ret(leftreg);
     case ST_INC: return asm_incdec(leftreg, "inc");
     case ST_DEC: return asm_incdec(leftreg, "dec");
+    case ST_BREAK: return asm_break();
+    case ST_CONTINUE: return asm_continue();
+    case ST_LABEL: return asm_ulabel(sym->name);
+    case ST_GOTO: return asm_goto(sym->name);
     }
 
     printf("ERROR: line %d, token: %d\n", tok->line, tok->token);

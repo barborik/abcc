@@ -1,0 +1,96 @@
+extern U0 printf(I8* fmt, ...);
+
+extern I32 glfwInit(U0);
+extern U8* glfwCreateWindow(I32 width, I32 height, I8* title, U8* monitor, U8* share);
+extern U0 glfwMakeContextCurrent(U8* window);
+extern I32 glfwWindowShouldClose(U8* window);
+extern U0 glfwSwapBuffers(U8* window);
+extern U0 glfwPollEvents(U0);
+extern U0 glfwTerminate(U0);
+
+extern U0 glClear(U32 bitfieldmask);
+
+/*
+      _=====_                               _=====_
+     / _____ \                             / _____ \
+   +.-'_____'-.---------------------------.-'_____'-.+
+  /   |     |  '.        A B C C        .'  |  _  |   \
+ / ___| /|\ |___ \                     / ___| /_\ |___ \
+/ |      |      | ;  __           _   ; | _         _ | ;
+| | <---   ---> | | |__|         |_:> | ||_|       (_)| |
+| |___   |   ___| ;SELECT       BUILD ; |___       ___| ;
+|\    | \|/ |    /  _     ___      _   \    | (X) |    /|
+| \   |_____|  .','" "', |___|  ,'" "', '.  |_____|  .' |
+|  '-.______.-' /       \J D C /       \  '-._____.-'   |
+|               |       |------|       |                |
+|              /\       /      \       /\               |
+|             /  '.___.'        '.___.'  \              |
+|            /                            \             |
+ \          /                              \           /
+  \________/                                \_________/
+                    PS2 CONTROLLER
+
+    === COMPILING INSTRUCTIONS FOR DUMMIES (BARBORIK) ===
+
+    -I. -L. -lglfw3 -lopengl32 -lgdi32
+    
+    GET GLFW BINARIES FROM https://www.glfw.org/download.html
+    or your favorite package manager :-)
+
+    GET OPENGL FROM 
+              ******
+                __
+              /`__`\
+          .=.| ('') |.=.
+         /.-.\ _)(_ /.-.\
+        |:    / ~~ \    :|
+        \ :  | (__) |  : /
+         | :  \_/\_/  : |
+         |:  /|    |\  :|
+         \_/` |    | `\_/
+              |    |
+              |    |
+         H311 |~~~~| H34V3N
+              '----'
+*/
+
+#define GL_COLOR_BUFFER_BIT 16384
+// problems: -1 doesn't exist
+// problems: ! operator doesn't exist
+// problems: U0* doesn't exist in arguments
+// problems: _ cannot be used as an identifier
+// problems: windows >4 argument function calls
+// problems: linux >6 argument function calls
+// problems: no errors/warnings
+
+I32 main(U0)
+{
+    printf("Hello world 123 from ABC :-)");
+
+    U0* window;
+
+    if(glfwInit() != 1) //FIX: should be !glfwInit()
+    {
+        return 1; //FIX: should be -1
+    }
+
+    window = glfwCreateWindow(640, 480, "Hello World", 0, 0); //FIX: broken
+
+    if(window != 1) //FIX: should be !window
+    {
+        glfwTerminate();
+        return 1; //FIX: should be -1
+    }
+
+    glfwMakeContextCurrent(window);
+
+    while (glfwWindowShouldClose(window) != 1) //FIX: should be !glfwWindowShouldClose(window)
+    {
+        glClear(GL_COLOR_BUFFER_BIT);
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    glfwTerminate();
+    return 0;
+}

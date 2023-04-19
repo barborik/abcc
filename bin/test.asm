@@ -1,7 +1,7 @@
 	global  main
 
 	section .text
-	; line 958464
+	; line 0
 main:
 	push	rbp
 	mov		rbp, rsp
@@ -12,74 +12,81 @@ main:
 	; line 0
 	; line 0
 	; line 0
+	; line 805
+	; line 816
+	; line -1122696976
+	; line 16
+	; line 818
+	sub		rsp, 8
+	; line 16
+	mov		rax, S5
+	; line 16
 	; line 0
-	; line 5
-	; line 0
-	sub		rsp, 24
-	; line 7
-	mov		rax, 2
-	; line 7
-	; line 0
-	mov		rbx, rbp
-	sub		rbx, 36
-	; line 0
-	mov		rcx, 4
-	; line 7
-	mov		rdx, 1
-	; line 0
-	imul	rcx, rdx
-	; line 0
-	add		rbx, rcx
+	mov		[rbp - 20], rax
+	; line 815
+	; line 17
 	; line 812
-	; line 808
-	mov		[rbx], eax
-	; line 8
-	mov		rax, 16
-	; line 8
+	sub		rsp, 8
+	; line 17
+	mov		rax, S6
+	; line 17
+	; line 0
+	mov		[rbp - 28], rax
+	; line 18
 	; line 810
-	mov		rbx, rbp
-	sub		rbx, 36
+	sub		rsp, 20
 	; line 0
-	mov		rcx, 4
-	; line 8
-	mov		rdx, 0
+	; line 20
 	; line 0
-	imul	rcx, rdx
+	sub		rsp, 4
+	; line 20
+	mov		rax, 0
+	; line 20
 	; line 0
-	add		rbx, rcx
+	mov		[rbp - 52], eax
+
+
+	; line 22
 	; line 0
-	; line 0
-	mov		[rbx], eax
-	; line 10
-	; line 0
-	mov		rax, printf
+	mov		rax, putchar
 	; line 0
 	push	rax
 	; line 0
+	; line 22
 	; line 0
-	; line 10
-	mov		rcx, S4
-	; line 10
+
+
+
+	mov		rcx, rbp
+	sub		rcx, 20
 	; line 0
-	mov		rdx, rbp
-	sub		rdx, 36
+	mov		rcx, [rcx]
 	; line 0
-	mov		r8, 4
-	; line 10
-	mov		r9, 0
+	mov		rdx, 1
+	; line 22
 	; line 0
-	imul	r8, r9
+	mov		r8, rbp
+	sub		r8, 52
+	mov 	r8d, [r8]
 	; line 0
-	add		rdx, r8
+	imul	rdx, r8
 	; line 0
-	mov		rdx, [rdx]
+	add		rcx, rdx
+
+
+
+
+
+
+	; line 0
+	mov		ecx, DWORD [rcx]
 	xor		rax, rax
-	sub		rsp, 20
-	call	[rbp - 44]
-	add		rsp, 20
+	sub		rsp, 36
+	call	[rbp - 60]
+	add		rsp, 36
 	mov		rax, rax
 	add		rsp, 8
-	; line 12
+	; line 24
 	mov		rax, 0
 	; line 0
 	mov		rax, rax
@@ -89,8 +96,10 @@ main:
 	extern printf
 	extern putchar
 	extern atoi
+	extern strcpy
 
 	section .bss
 
 	section .data
-S4:				db 37, 100, 10, 0
+S5:				db 72, 101, 108, 108, 111, 0
+S6:				db 87, 111, 114, 108, 100, 0

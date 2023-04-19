@@ -72,6 +72,12 @@ int match(const char *kword, Tok *t)
         return 1;
     }
 
+    if (!strcmp(kword, "else"))
+    {
+        t->token = LT_ELSE;
+        return 1;
+    }
+
     if (!strcmp(kword, "while"))
     {
         t->token = LT_WHILE;
@@ -94,6 +100,24 @@ int match(const char *kword, Tok *t)
     if (!strcmp(kword, "extern"))
     {
         t->token = LT_EXTERN;
+        return 1;
+    }
+
+    if (!strcmp(kword, "break"))
+    {
+        t->token = LT_BREAK;
+        return 1;
+    }
+
+    if (!strcmp(kword, "continue"))
+    {
+        t->token = LT_CONTINUE;
+        return 1;
+    }
+
+    if (!strcmp(kword, "goto"))
+    {
+        t->token = LT_GOTO;
         return 1;
     }
 

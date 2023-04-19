@@ -30,10 +30,14 @@ int asm_func(Node *root);
 int asm_call(int reg, Node *args);
 int asm_ret(int reg);
 void asm_stackfree(void);
+int asm_break(void);
+int asm_continue(void);
 int asm_if(Node *root, int cmd);
 int asm_while(Node *root, int cmd);
 int asm_for(Node *root, int cmd);
 int asm_incdec(int reg, char *ins);
+int asm_ulabel(char *name);
+int asm_goto(char *name);
 void asm_preamble(void);
 void asm_postamble(void);
 
