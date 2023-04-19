@@ -2,12 +2,9 @@
 
 I32 main(I32 argc, I8** argv)
 {
-    I32 abc[6];
+    I32 abc = -1;
 
-    abc[1] = 2;
-    abc[0] = 16;
-
-    printf("%d\n", abc[0]);
+    printf("%d\n", abc);
 
     return 0;
 }

@@ -6,6 +6,12 @@ char *file;
 dlist_t *tokens;
 size_t tindex = 0;
 
+enum
+{
+    S_PLUS = 1,
+    S_MINUS = 0,
+};
+
 // sets the passed token to the next token available
 // returns 1 on success and 0 on failure
 int next(Tok **t)
@@ -164,7 +170,7 @@ char parse2char()
 
 // parses and returns next integer in the source file stream
 // reader head must be on the first digit
-int parse2i()
+int parse2i(int sign)
 {
     fseek(src_f, -1, SEEK_CUR);
     int c = nextc(), v = 0;
@@ -176,7 +182,7 @@ int parse2i()
     }
 
     fseek(src_f, -1, SEEK_CUR);
-    return v;
+    return (sign) ? (v) : (-v);
 }
 
 void keyword(Tok *t)
@@ -185,7 +191,7 @@ void keyword(Tok *t)
     fseek(src_f, -1, SEEK_CUR);
     char kword[1024];
     int i = 0, c = fgetc(src_f);
-    while (isalpha(c) || isdigit(c))
+    while (isalpha(c) || isdigit(c) || c == '_')
     {
         kword[i] = c;
         c = fgetc(src_f);
@@ -218,6 +224,15 @@ int scan(Tok *t)
 
     // operators
     case '+':
+        c = nextc();
+        if (isdigit(c))
+        {
+            t->token = LT_INTLIT;
+            t->val.i = parse2i(S_PLUS);
+            break;
+        }
+        fseek(src_f, -1, SEEK_CUR);
+
         if (fgetc(src_f) == '+')
         {
             t->token = LT_DPLUS;
@@ -228,6 +243,15 @@ int scan(Tok *t)
         t->token = LT_PLUS;
         break;
     case '-':
+        c = nextc();
+        if (isdigit(c))
+        {
+            t->token = LT_INTLIT;
+            t->val.i = parse2i(S_MINUS);
+            break;
+        }
+        fseek(src_f, -1, SEEK_CUR);
+
         if (fgetc(src_f) == '-')
         {
             t->token = LT_DMINUS;
@@ -346,7 +370,7 @@ int scan(Tok *t)
         if (isdigit(c))
         {
             t->token = LT_INTLIT;
-            t->val.i = parse2i();
+            t->val.i = parse2i(S_PLUS);
             break;
         }
 

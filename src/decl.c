@@ -35,7 +35,7 @@ int args(dlist_t *local)
         next(&type); // data type
         addr = typemod();
 
-        if (type->token == LT_U0 || type->token == LT_I0)
+        if ((type->token == LT_U0 || type->token == LT_I0) && !addr)
         {
             break;
         }
