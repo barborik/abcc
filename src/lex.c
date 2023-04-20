@@ -151,7 +151,11 @@ int parse2str()
         c = fgetc(src_f);
     }
 
-    return adduniq(str);
+    char *final = malloc(strlen(str));
+    strcpy(final, str);
+
+    dl_add(uniq, &final);
+    return uniq->used - 1;
 }
 
 char parse2char()
@@ -185,11 +189,58 @@ int parse2i(int sign)
     return (sign) ? (v) : (-v);
 }
 
+void parse2n(Tok *t)
+{
+    char num[64];
+    int c = fgetc(src_f), i = 0, isfloat = 0;
+
+    /*t->token = LT_INTLIT;
+    t->val.i = parse2i(S_PLUS);*/
+
+    while (isalnum(c) || c == '.')
+    {
+        if (c == '.')
+        {
+            isfloat = 1;
+        }
+        num[i] = c;
+        c = fgetc(src_f);
+        i++;
+    }
+    fseek(src_f, -1, SEEK_CUR);
+    num[i] = 0;
+
+    if (isfloat)
+    {
+        t->token = LT_FLOATLIT;
+        t->val.f = strtof(num, NULL);
+        return;
+    }
+
+    if (num[0] == '0')
+    {
+        switch (num[1])
+        {
+        case 'x':
+            t->token = LT_INTLIT;
+            t->val.i = strtol(num + 2 * sizeof(char), NULL, 16);
+            return;
+        case 'b':
+            t->token = LT_INTLIT;
+            t->val.i = strtol(num + 2 * sizeof(char), NULL, 2);
+            return;
+        }
+    }
+
+    t->token = LT_INTLIT;
+    t->val.i = strtol(num, NULL, 10);
+}
+
 void keyword(Tok *t)
 {
     // load the keyword
     fseek(src_f, -1, SEEK_CUR);
-    char kword[1024];
+    char kword[256];
     int i = 0, c = fgetc(src_f);
     while (isalpha(c) || isdigit(c) || c == '_')
     {
@@ -224,7 +275,7 @@ int scan(Tok *t)
 
     // operators
     case '+':
-        c = nextc();
+        c = fgetc(src_f);
         if (isdigit(c))
         {
             t->token = LT_INTLIT;
@@ -243,7 +294,7 @@ int scan(Tok *t)
         t->token = LT_PLUS;
         break;
     case '-':
-        c = nextc();
+        c = fgetc(src_f);
         if (isdigit(c))
         {
             t->token = LT_INTLIT;
@@ -372,8 +423,8 @@ int scan(Tok *t)
     default:
         if (isdigit(c))
         {
-            t->token = LT_INTLIT;
-            t->val.i = parse2i(S_PLUS);
+            fseek(src_f, -1, SEEK_CUR);
+            parse2n(t);
             break;
         }
 

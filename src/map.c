@@ -49,12 +49,6 @@ int bin2stx(Tok *t)
     case LT_ASSIGN:
         t->token = ST_ASSIGN;
         break;
-    case LT_INTLIT:
-        t->token = ST_INTLIT;
-        break;
-    case LT_IDENT:
-        t->token = ST_IDENT;
-        break;
     default:
         return 0;
     }
@@ -80,6 +74,9 @@ int un2stx(Tok *t)
         break;
     case LT_INTLIT:
         t->token = ST_INTLIT;
+        break;
+    case LT_FLOATLIT:
+        t->token = ST_FLOATLIT;
         break;
     case LT_CHARLIT:
         t->token = ST_CHARLIT;

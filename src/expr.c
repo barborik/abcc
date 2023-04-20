@@ -17,6 +17,9 @@ Node *explist(void)
         right = binexp(0);
         root = mknode(ST_JOIN, root, NULL, right);
 
+        next(&tok);
+        back();
+
         if (tokseq(1, LT_RPAR))
         {
             break;
@@ -42,6 +45,14 @@ Node *prefix(Node *leaf)
         left = prefix(leaf);
         root = mknode(ST_DEREF, left, NULL, NULL);
         break;
+    case LT_EXCL:
+        leaf = mknode(ST_DEREF, leaf, NULL, NULL);
+        root = mknode(ST_LOGNOT, leaf, NULL, NULL);
+        break;
+    case LT_TILDA:
+        leaf = mknode(ST_DEREF, leaf, NULL, NULL);
+        root = mknode(ST_BITNOT, leaf, NULL, NULL);
+        break;
     case LT_DPLUS:
         //setrval(leaf, 0);
         //root = mknode(ST_ADDR, leaf, NULL, NULL);
@@ -65,6 +76,9 @@ Node *prefix(Node *leaf)
 
 Node *postfix(Node *leaf)
 {
+    int recur_;
+    Type type_;
+
     Tok  *tok, offs;
     Node *root, *left, *right, *tmp;
 
@@ -72,28 +86,39 @@ Node *postfix(Node *leaf)
     switch (tok->token)
     {
     case LT_LPAR:
+        recur_ = recur;
         recur = 0;
+        if (sym && sym->class == C_LOCL)
+        {
+            leaf = mknode(ST_DEREF, leaf, NULL, NULL);
+        }
+        type_ = type;
         root = mknode(ST_CALL, leaf, explist(), NULL);
+        type = type_;
+        recur = recur_;
         next(&tok);
         break;
     case LT_LSQBR:
+        recur_ = recur;
+        recur = 0;
+
         if (!type.complex)
         {
-            left = mknode(ST_DEREF, leaf, NULL, NULL);
-        }
-        else
-        {
-            left = leaf;
+            leaf = mknode(ST_DEREF, leaf, NULL, NULL);
         }
 
         if (type.addr) type.addr--;
         offs.token = ST_INTLIT;
         offs.val.i = type2size(type);
 
+        type_ = type;
         right = binexp(0);
         right = mknode(ST_MUL, mkleaf(&offs, 0), NULL, right);
+        type = type_;
 
-        root = mknode(ST_ADD, left, NULL, right);
+        recur = recur_;
+
+        root = mknode(ST_ADD, leaf, NULL, right);
 
         if (type.complex)
         {
@@ -119,10 +144,10 @@ Node *postfix(Node *leaf)
         break;
     }
 
-    if (root != leaf)
+    /*if (root != leaf)
     {
         root = postfix(root);
-    }
+    }*/
 
     return root;
 }
@@ -133,7 +158,6 @@ Node *unexp(void)
     int  deref_ = 0;
     char *str;
     Tok  *tok;
-    Sym  *sym;
     Node *root;
     Node *leaf = mknode(NULL, NULL, NULL, NULL);
     Node *post = mknode(NULL, NULL, NULL, NULL);
@@ -163,7 +187,8 @@ Node *unexp(void)
         break;
     case ST_IDENT:
         deref_ = 1;
-        type = getsym(tok)->type;
+        sym = getsym(tok);
+        type = sym->type;
         *leaf = *mknode(ST_ADDR, mkleaf(tok, 0), NULL, NULL);
         break;
     default:
@@ -177,7 +202,7 @@ Node *unexp(void)
     {
         root = mknode(ST_DEREF, root, NULL, NULL);
     }*/
-    if (root->token.token == ST_LEFT || type.complex)
+    if (type.complex || root->token.token == ST_LEFT)
     {
         deref_ = 0;
     }

@@ -1,0 +1,24 @@
+#include "stdlib.abh"
+
+I32 main(I32 argc, I8** argv)
+{
+    I8* s1 = "Hello";
+    I8* s2 = "World";
+    I8 s3[20];
+
+    I32 i, j;
+    
+    for (i = 0; s1[i] != '\0'; i++)
+    {
+        s3[i] = s1[i];
+    }
+
+    for (j = 0; s2[j] != '\0'; j++)
+    {
+        s3[i + j] = s2[j];
+    }
+
+    printf("%s\n", s3);
+
+    return 0;
+}

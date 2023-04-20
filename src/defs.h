@@ -181,9 +181,10 @@ enum
     LT_OP_END,
 
     LT_LIT_START,
-    LT_INTLIT,  // integer literal
-    LT_STRLIT,  // string literal
-    LT_CHARLIT, // character literal
+    LT_INTLIT,   // integer literal
+    LT_FLOATLIT, // float literal
+    LT_STRLIT,   // string literal
+    LT_CHARLIT,  // character literal
     LT_LIT_END,
 
     LT_TYPE_START,
@@ -261,9 +262,10 @@ enum
 
     /* === LITERALS === */
     ST_LIT_START,
-    ST_INTLIT,  // integer literal
-    ST_STRLIT,  // string literal
-    ST_CHARLIT, // character literal
+    ST_INTLIT,   // integer literal
+    ST_FLOATLIT, // float literal
+    ST_STRLIT,   // string literal
+    ST_CHARLIT,  // character literal
     ST_LIT_END,
 
     /* IDENTIFIER */
