@@ -13,13 +13,25 @@ FLOATS :-|
 
 I32 main(I32 argc, I8** argv)
 {
-    I8* s1 = "Hello";
+    /*I8* s1 = "Hello";
     I8* s2 = "World";
     I8 s3[20];
 
     I32 i = 0;
 
-    putchar(s1[i]);
+    putchar(s1[i]);*/
+
+
+    I8 abc;
+
+    abc = 65;
+
+    putchar(++abc);
+
+
+    U0* func;
+    func = putchar;
+    func(abc);
 
     return 0;
 }
