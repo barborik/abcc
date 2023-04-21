@@ -35,7 +35,7 @@ In ABC every operator returns with a value regardless of context. So for the sam
 ```
 where the ```i``` variable is index of the element multiplied by the size of the type.
 
-### <ins>IMPLEMENTATION</ins>
+### <ins>THIRD PARTY</ins>
 #### Preprocessor
 Current implementation uses GrieferAtWork's [Tiny PreProcessor](https://github.com/GrieferAtWork/tpp), although im planning on implementing my own.
 
