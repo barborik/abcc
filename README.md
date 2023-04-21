@@ -1,5 +1,6 @@
 # abcc
-Adam Barborík's C Compiler
+Adam Barborík's C Compiler<br><br>
+<img width="200" height="192" src="https://raw.githubusercontent.com/barborik/abcc/main/abc_logo.png">
 
 ### <ins>ABOUT</ins>
 Adam Barborík's C Compiler is a compiler for a dialect of C called ABC - Adam Barborík C.<br>
