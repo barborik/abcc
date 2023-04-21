@@ -273,7 +273,7 @@ int scan(Tok *t)
     case EOF:
         return 0;
 
-    // operators
+    /* OPERATORS */
     case '+':
         c = fgetc(src_f);
         if (isdigit(c))
@@ -318,10 +318,20 @@ int scan(Tok *t)
     case '/':
         t->token = LT_FSLASH;
         break;
+    case '%':
+        t->token = LT_PERCENT;
+        break;
     case '>':
         if (fgetc(src_f) == '=')
         {
             t->token = LT_GE;
+            break;
+        }
+        fseek(src_f, -1, SEEK_CUR);
+
+        if (fgetc(src_f) == '>')
+        {
+            t->token = LT_RSHIFT;
             break;
         }
         fseek(src_f, -1, SEEK_CUR);
@@ -332,6 +342,13 @@ int scan(Tok *t)
         if (fgetc(src_f) == '=')
         {
             t->token = LT_LE;
+            break;
+        }
+        fseek(src_f, -1, SEEK_CUR);
+
+        if (fgetc(src_f) == '<')
+        {
+            t->token = LT_LSHIFT;
             break;
         }
         fseek(src_f, -1, SEEK_CUR);
@@ -350,6 +367,9 @@ int scan(Tok *t)
         break;
     case '~':
         t->token = LT_TILDA;
+        break;
+    case '^':
+        t->token = LT_CARET;
         break;
     case '&':
         if (fgetc(src_f) == '&')
@@ -371,7 +391,8 @@ int scan(Tok *t)
 
         t->token = LT_PIPE;
         break;
-    // other
+
+    /* OTHER */
     case '=':
         if (fgetc(src_f) == '=')
         {

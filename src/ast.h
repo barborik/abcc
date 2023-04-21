@@ -23,5 +23,6 @@ int isblock(int token);
 
 Node *mknode(int token, Node *left, Node *mid, Node *right);
 Node *mkleaf(Tok *token, int flags);
+Node *copynode(Node *dst, Node *src);
 
 #endif

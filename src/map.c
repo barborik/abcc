@@ -16,6 +16,9 @@ int bin2stx(Tok *t)
     case LT_FSLASH:
         t->token = ST_DIV;
         break;
+    case LT_PERCENT:
+        t->token = ST_MOD;
+        break;
     case LT_EQ:
         t->token = ST_EQ;
         break;
@@ -46,6 +49,15 @@ int bin2stx(Tok *t)
     case LT_DPIPE:
         t->token = ST_LOGOR;
         break;
+    case LT_CARET:
+        t->token = ST_BITXOR;
+        break;
+    case LT_LSHIFT:
+        t->token = ST_LSHIFT;
+        break;
+    case LT_RSHIFT:
+        t->token = ST_RSHIFT;
+        break;
     case LT_ASSIGN:
         t->token = ST_ASSIGN;
         break;
@@ -60,18 +72,6 @@ int un2stx(Tok *t)
 {
     switch (t->token)
     {
-    case LT_EXCL:
-        t->token = ST_LOGNOT;
-        break;
-    case LT_TILDA:
-        t->token = ST_BITNOT;
-        break;
-    case LT_AMP:
-        t->token = ST_ADDR;
-        break;
-    case LT_ASTERISK:
-        t->token = ST_DEREF;
-        break;
     case LT_INTLIT:
         t->token = ST_INTLIT;
         break;

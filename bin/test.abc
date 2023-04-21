@@ -13,13 +13,12 @@ FLOATS :-|
 
 I32 main(I32 argc, I8** argv)
 {
-    I32 abc[6];
+    I32 abc = 4 || 2;
 
-    abc[3] = 9;
+    printf("%d\n", abc);
 
-    I32* ggg = ++(abc + 12);
-
-    printf("%d\n", *ggg);
+    /*I32* ggg = ++(abc + 12);
+    printf("%d\n", *ggg);*/
 
     return 0;
 }

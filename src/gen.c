@@ -44,6 +44,7 @@ int gen(Node *root, int reg, int cmd)
     case ST_SUB: return asm_sub(leftreg, rightreg);
     case ST_MUL: return asm_mul(leftreg, rightreg);
     case ST_DIV: return asm_div(leftreg, rightreg);
+    case ST_MOD: return asm_mod(leftreg, rightreg);
     case ST_INTLIT:
         if (type.type > LT_I32)
         {
@@ -122,8 +123,14 @@ int gen(Node *root, int reg, int cmd)
     case ST_LE: return asm_cmpset(leftreg, rightreg, "setle");
     case ST_LOGNOT: return asm_lognot(leftreg);
     case ST_BITNOT: return asm_bitnot(leftreg);
-    case ST_LOGOR:
-    case ST_BITOR: return asm_or(leftreg, rightreg);
+    case ST_NEG: return asm_neg(leftreg);
+    case ST_LOGOR: return asm_logor(leftreg, rightreg);
+    case ST_BITOR: return asm_bitor(leftreg, rightreg);
+    case ST_LOGAND: return asm_logand(leftreg, rightreg);
+    case ST_BITAND: return asm_bitand(leftreg, rightreg);
+    case ST_BITXOR: return asm_bitxor(leftreg, rightreg);
+    case ST_LSHIFT: return asm_lshift(leftreg, rightreg);
+    case ST_RSHIFT: return asm_rshift(leftreg, rightreg);
     case ST_IF: return asm_if(root, cmd);
     case ST_WHILE: return asm_while(root, cmd);
     case ST_FOR: return asm_for(root, cmd);

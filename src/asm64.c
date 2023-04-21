@@ -57,18 +57,81 @@ int asm_sub(int reg0, int reg1)
 
 int asm_mul(int reg0, int reg1)
 {
-    fprintf(out_f, "\timul\t%s, %s\n", reginfo->reglist[reg0], reginfo->reglist[reg1]);
+    if (type.addr)
+    {
+        fprintf(out_f, "\tpush\trax\n");
+        fprintf(out_f, "\tmov\t\trax, %s\n", reginfo->reglist[reg0]);
+        fprintf(out_f, "\tmul\t\t%s\n", reginfo->reglist[reg1]);
+        fprintf(out_f, "\tmov\t\t%s, rax\n", reginfo->reglist[reg0]);
+        fprintf(out_f, "\tpop\t\trax\n");
+        rfree(reg1);
+        return reg0;
+    }
+
+    switch (type.type)
+    {
+    case LT_I8:
+    case LT_I16:
+    case LT_I32:
+    case LT_I64:
+        fprintf(out_f, "\timul\t%s, %s\n", reginfo->reglist[reg0], reginfo->reglist[reg1]);
+        break;
+    case LT_U8:
+    case LT_U16:
+    case LT_U32:
+    case LT_U64:
+        fprintf(out_f, "\tpush\trax\n");
+        fprintf(out_f, "\tmov\t\trax, %s\n", reginfo->reglist[reg0]);
+        fprintf(out_f, "\tmul\t\t%s\n", reginfo->reglist[reg1]);
+        fprintf(out_f, "\tmov\t\t%s, rax\n", reginfo->reglist[reg0]);
+        fprintf(out_f, "\tpop\t\trax\n");
+        break;
+    }
+    
     rfree(reg1);
     return reg0;
 }
 
 int asm_div(int reg0, int reg1)
 {
+    fprintf(out_f, "\tpush\trax\n");
     fprintf(out_f, "\tmov\t\trax, %s\n", reginfo->reglist[reg0]);
     fprintf(out_f, "\tcqo\n");
-    fprintf(out_f, "\tidiv\t%s\n", reginfo->reglist[reg1]);
+
+    if (type.addr)
+    {
+        fprintf(out_f, "\tdiv\t%s\n", reginfo->reglist[reg1]);
+        fprintf(out_f, "\tmov\t\t%s, rax\n", reginfo->reglist[reg0]);
+        rfree(reg1);
+        return reg0;
+    }
+
+    switch (type.type)
+    {
+    case LT_I8:
+    case LT_I16:
+    case LT_I32:
+    case LT_I64:
+        fprintf(out_f, "\tidiv\t%s\n", reginfo->reglist[reg1]);
+        break;
+    case LT_U8:
+    case LT_U16:
+    case LT_U32:
+    case LT_U64:
+        fprintf(out_f, "\tdiv\t%s\n", reginfo->reglist[reg1]);
+        break;
+    }
+    
     fprintf(out_f, "\tmov\t\t%s, rax\n", reginfo->reglist[reg0]);
+    fprintf(out_f, "\tpop\t\trax\n");
     rfree(reg1);
+    return reg0;
+}
+
+int asm_mod(int reg0, int reg1)
+{
+    asm_div(reg0, reg1);
+    fprintf(out_f, "\tmov\t\t%s, rdx\n", reginfo->reglist[reg0]);
     return reg0;
 }
 
@@ -85,13 +148,121 @@ int asm_lognot(int reg)
 
 int asm_bitnot(int reg)
 {
-    fprintf(out_f, "\tnot\t\t%s\n", reginfo->reglist[reg]);
+    if (type.addr)
+    {
+        fprintf(out_f, "\tnot\t\t%s\n", reginfo->reglist64[reg]);
+        return reg;
+    }
+
+    switch (type.type)
+    {
+    case LT_U8:
+    case LT_I8:
+        fprintf(out_f, "\tnot\t\t%s\n", reginfo->reglist8[reg]);
+        break;
+    case LT_U16:
+    case LT_I16:
+        fprintf(out_f, "\tnot\t\t%s\n", reginfo->reglist16[reg]);
+        break;
+    case LT_U32:
+    case LT_I32:
+        fprintf(out_f, "\tnot\t\t%s\n", reginfo->reglist32[reg]);
+        break;
+    case LT_U64:
+    case LT_I64:
+        fprintf(out_f, "\tnot\t\t%s\n", reginfo->reglist64[reg]);
+        break;
+    }
+
     return reg;
 }
 
-int asm_or(int reg0, int reg1)
+int asm_neg(int reg)
+{
+    if (type.addr)
+    {
+        fprintf(out_f, "\tneg\t\t%s\n", reginfo->reglist64[reg]);
+        return reg;
+    }
+
+    switch (type.type)
+    {
+    case LT_U8:
+    case LT_I8:
+        fprintf(out_f, "\tneg\t\t%s\n", reginfo->reglist8[reg]);
+        break;
+    case LT_U16:
+    case LT_I16:
+        fprintf(out_f, "\tneg\t\t%s\n", reginfo->reglist16[reg]);
+        break;
+    case LT_U32:
+    case LT_I32:
+        fprintf(out_f, "\tneg\t\t%s\n", reginfo->reglist32[reg]);
+        break;
+    case LT_U64:
+    case LT_I64:
+        fprintf(out_f, "\tneg\t\t%s\n", reginfo->reglist64[reg]);
+        break;
+    }
+
+    return reg;
+}
+
+int asm_bitor(int reg0, int reg1)
 {
     fprintf(out_f, "\tor\t\t%s, %s\n", reginfo->reglist[reg0], reginfo->reglist[reg1]);
+    rfree(reg1);
+    return reg0;
+}
+
+int asm_bitand(int reg0, int reg1)
+{
+    fprintf(out_f, "\tand\t\t%s, %s\n", reginfo->reglist[reg0], reginfo->reglist[reg1]);
+    rfree(reg1);
+    return reg0;
+}
+
+int asm_logor(int reg0, int reg1)
+{
+    reg0 = asm_lognot(reg0);
+    reg0 = asm_lognot(reg0);
+    reg1 = asm_lognot(reg1);
+    reg1 = asm_lognot(reg1);
+    return asm_bitor(reg0, reg1);
+}
+
+int asm_logand(int reg0, int reg1)
+{
+    reg0 = asm_lognot(reg0);
+    reg0 = asm_lognot(reg0);
+    reg1 = asm_lognot(reg1);
+    reg1 = asm_lognot(reg1);
+    return asm_bitand(reg0, reg1);
+}
+
+int asm_bitxor(int reg0, int reg1)
+{
+    fprintf(out_f, "\txor\t\t%s, %s\n", reginfo->reglist[reg0], reginfo->reglist[reg1]);
+    rfree(reg1);
+    return reg0;
+}
+
+int asm_lshift(int reg0, int reg1)
+{
+    fprintf(out_f, "\tpush\trcx\n");
+    fprintf(out_f, "\tmov\t\trcx, %s\n", reginfo->reglist[reg1]);
+    fprintf(out_f, "\tshl\t\t%s, cl\n", reginfo->reglist[reg0]);
+    fprintf(out_f, "\tpop\t\trcx\n");
+    rfree(reg1);
+    return reg0;
+}
+
+int asm_rshift(int reg0, int reg1)
+{
+    fprintf(out_f, "\tpush\trcx\n");
+    fprintf(out_f, "\tmov\t\trcx, %s\n", reginfo->reglist[reg1]);
+    fprintf(out_f, "\tshr\t\t%s, cl\n", reginfo->reglist[reg0]);
+    fprintf(out_f, "\tpop\t\trcx\n");
     rfree(reg1);
     return reg0;
 }

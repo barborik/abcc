@@ -31,6 +31,14 @@ Node *mkleaf(Tok *token, int flags)
     return node;
 }
 
+Node *copynode(Node *dst, Node *src)
+{
+    dst->token = src->token;
+    dst->left = src->left;
+    dst->mid = src->mid;
+    dst->right = src->right;
+}
+
 // checks if a given token is an operator token
 int isop(int token)
 {

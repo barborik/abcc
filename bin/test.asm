@@ -6,76 +6,60 @@ main:
 	push	rbp
 	mov		rbp, rsp
 	sub		rsp, 4
-	mov		[rbp - 4], edi
+	mov		[rbp - 4], ecx
 	sub		rsp, 8
-	mov		[rbp - 12], rsi
+	mov		[rbp - 12], rdx
 	; line 0
-	; line 0
-	; line 0
+	; line 813
 	; line 0
 	; line 16
-	; line 802
-	sub		rsp, 24
+	; line 0
+	sub		rsp, 4
+	; line 16
+	mov		rax, 4
+	; line 16
+	mov		rbx, 2
+	; line 0
+	xor		rcx, rcx
+	test	rax, rax
+	setz	cl
+	mov		rax, rcx
+	xor		rcx, rcx
+	test	rax, rax
+	setz	cl
+	mov		rax, rcx
+	xor		rcx, rcx
+	test	rbx, rbx
+	setz	cl
+	mov		rbx, rcx
+	xor		rcx, rcx
+	test	rbx, rbx
+	setz	cl
+	mov		rbx, rcx
+	or		rax, rbx
+	; line 16
+	; line 809
+	mov		[rbp - 16], eax
 	; line 18
-	mov		rax, 9
-	; line 18
-	; line 0
-	mov		rbx, rbp
-	sub		rbx, 36
-	; line 131599216
-	mov		rcx, 4
-	; line 18
-	mov		rdx, 3
-	; line 0
-	imul	rcx, rdx
-	; line 0
-	add		rbx, rcx
-	; line 0
-	; line 0
-	mov		[rbx], eax
-	; line 0
-	; line 20
-	; line 0
-	sub		rsp, 8
-	; line 20
-	; line 0
-	mov		rax, rbp
-	sub		rax, 36
-	; line 20
-	mov		rbx, 12
-	; line 0
-	add		rax, rbx
-	; line 0
-	inc		QWORD [rax]
-	; line 20
-	; line 0
-	mov		[rbp - 44], rax
-	; line 22
 	; line 0
 	mov		rax, printf
 	; line 0
 	push	rax
 	; line 0
 	; line 0
-	; line 22
-	mov		rdi, S5
-	; line 22
-	; line 0
-	mov		rsi, rbp
-	sub		rsi, 44
-	; line 0
-	mov		rsi, [rsi]
-	; line 0
-	mov		esi, DWORD [rsi]
+	; line 18
+	mov		rcx, S5
+	; line 18
+	mov		edx, DWORD [rbp - 16]
 	xor		rax, rax
-	sub		rsp, 44
-	call	[rbp - 52]
-	add		rsp, 44
+	sub		rsp, 40
+	call	[rbp - 24]
+	add		rsp, 40
 	mov		rax, rax
 	add		rsp, 8
-	; line 24
+	; line 23
 	mov		rax, 0
-	; line 0
+	; line 811
 	mov		rax, rax
 	leave
 	ret

@@ -44,10 +44,10 @@ static char *reglist32_std64[] = {"eax", "ebx", "ecx", "edx", "esi", "edi", "r8d
 static char *reglist16_std64[] = {"ax", "bx", "cx", "dx", "si", "di", "r8w", "r9w", "r10w", "r11w", "r12w", "r13w", "r14w", "r15w"};
 static char *reglist8_std64[] = {"al", "bl", "cl", "dl", "sil", "dil", "r8b", "r9b", "r10b", "r11b", "r12b", "r13b", "r14b", "r15b"};
 
-static char *reglist64_win64[] = {"rcx", "rdx", "r8", "r9"};
-static char *reglist32_win64[] = {"ecx", "edx", "r8d", "r9d"};
-static char *reglist16_win64[] = {"cx", "dx", "r8w", "r9w"};
-static char *reglist8_win64[] = {"cl", "dl", "r8b", "r9b"};
+static char *reglist64_win64[] = {"rcx", "rdx", "r8", "r9", /* FAKE --> */ "r10", "r11"};
+static char *reglist32_win64[] = {"ecx", "edx", "r8d", "r9d", /* FAKE --> */ "r10d", "r11d"};
+static char *reglist16_win64[] = {"cx", "dx", "r8w", "r9w", /* FAKE --> */ "r10w", "r11w"};
+static char *reglist8_win64[] = {"cl", "dl", "r8b", "r9b", /* FAKE --> */ "r10b", "r11b"};
 
 static char *reglist64_elf64[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 static char *reglist32_elf64[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
@@ -133,22 +133,14 @@ extern FILE *out_f;
 
 /* OPERATOR PRECEDENCE TABLE */
 static int prec[] = {
-    NULL, // OP_START
-    /*
-    +  -  *  /  == != >  <  >= <= && || &  |  =  !  ~ */
-    1, 1, 2, 2, 4, 4, 3, 3, 3, 3, 1, 1, 1, 1, 0, 1, 1,
-    1,    // REF &
-    1,    // DEREF *
-    1,    // function call
-    1,    // increment ++
-    1,    // decrement --
-    NULL, // OP_END
-    NULL, // LIT_START
-    0,    // INTLIT
-    0,    // STRLIT
-    0,    // CHARLIT
-    NULL, // LIT_END
-    0,    // IDENT
+    NULL,             // OP_START
+    3, 3, 3,          // * / %
+    4, 4,             // + -
+    5, 5,             // << >>
+    6, 6, 6, 6, 6, 6, // < <= > >= == !=
+    7, 7, 7,          // & ^ |
+    8, 8,             // && ||
+    9,                // =
 };
 
 /* LEXICAL TOKENS */
@@ -165,6 +157,9 @@ enum
     LT_DMINUS,   // --
     LT_ASTERISK, // *
     LT_FSLASH,   // /
+    LT_PERCENT,  // %
+    LT_LSHIFT,   // <<
+    LT_RSHIFT,   // >>
     LT_EQ,       // ==
     LT_NE,       // !=
     LT_GT,       // >
@@ -178,6 +173,7 @@ enum
     LT_EXCL,     // !
     LT_TILDA,    // ~
     LT_ASSIGN,   // =
+    LT_CARET,    // ^
     LT_OP_END,
 
     LT_LIT_START,
@@ -234,25 +230,36 @@ enum
     /* === OPERATIONS === */
     ST_OP_START,
     /* BINARY */
-    ST_ADD,    // +
-    ST_SUB,    // -
-    ST_MUL,    // *
-    ST_DIV,    // /
-    ST_EQ,     // ==
-    ST_NE,     // !=
-    ST_GT,     // >
-    ST_LT,     // <
-    ST_GE,     // >=
-    ST_LE,     // <=
+    ST_MUL, // *
+    ST_DIV, // /
+    ST_MOD, // %
+
+    ST_ADD, // +
+    ST_SUB, // -
+
+    ST_LSHIFT, // <<
+    ST_RSHIFT, // >>
+
+    ST_EQ, // ==
+    ST_NE, // !=
+    ST_GT, // >
+    ST_LT, // <
+    ST_GE, // >=
+    ST_LE, // <=
+
+    ST_BITAND, // &
+    ST_BITXOR, // ^
+    ST_BITOR,  // |
+
     ST_LOGAND, // &&
     ST_LOGOR,  // ||
-    ST_BITAND, // &
-    ST_BITOR,  // |
+
     ST_ASSIGN, // =
 
     /* UNARY */
     ST_LOGNOT, // !
     ST_BITNOT, // ~
+    ST_NEG,    // -
     ST_ADDR,   // &
     ST_DEREF,  // *
     ST_CALL,   // function call
