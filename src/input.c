@@ -9,7 +9,7 @@ char *usage = "usage: %s [flags] <input file> <output file>\n\n"
               "\t-h, --help display this help message\n\n"
 
               "\t-m <mode>\n"
-              "\t    64\t\t64-bit mode\n"
+              "\t    64\t\t64-bit mode (DEFAULT)\n"
               "\t    16\t\t16-bit mode\n\n"
 
               "\t-cc <calling convention>\n"
@@ -24,6 +24,13 @@ int flags(int argc, char **argv)
         if (argv[i][0] != '-')
         {
             return i;
+        }
+
+        /* HELP */
+        if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help"))
+        {
+            printf(usage, argv[0]);
+            exit(0);
         }
 
         /* CALLING CONVENTION */
@@ -73,10 +80,43 @@ int flags(int argc, char **argv)
             exit(-1);
         }
 
-        if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help"))
+        /* MODE */
+        if (!strncmp(argv[i], "-mode", strlen("-mode")))
         {
-            printf(usage, argv[0]);
-            exit(0);
+            /* FLAG AND ARGUMENT TOGETHER */
+            if (!strcmp(argv[i] + strlen("-mode"), "16"))
+            {
+                mode(M_16);
+                continue;
+            }
+
+            if (!strcmp(argv[i] + strlen("-mode"), "64"))
+            {
+                mode(M_64);
+                continue;
+            }
+
+            if (argc < (i + 2))
+            {
+                goto mode_end;
+            }
+
+            /* FLAG AND ARGUMENT SEPARATE */
+            if (!strcmp(argv[i + 1], "16"))
+            {
+                mode(M_16);
+                continue;
+            }
+
+            if (!strcmp(argv[i + 1], "64"))
+            {
+                mode(M_64);
+                continue;
+            }
+
+        mode_end:
+            printf("ERROR: unknown mode\n");
+            exit(-1);
         }
 
         printf("ERROR: unknown flag %s\n", argv[i]);
@@ -96,6 +136,7 @@ void input(int argc, char **argv)
         exit(-1);
     }
 
+    mode(M_64);
     i = flags(argc, argv);
 
     if (!access(argv[i], F_OK))

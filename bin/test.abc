@@ -13,7 +13,7 @@ FLOATS :-|
 
 I32 main(I32 argc, I8** argv)
 {
-    I32 abc = 4 || 2;
+    I32 abc = 4 || 0;
 
     printf("%d\n", abc);
 

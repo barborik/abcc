@@ -1,6 +1,6 @@
 #include "includes.h"
 
-void asm64_stackfree(void)
+void asm16_stackfree(void)
 {
     int add = 0;
     for (int i = 0; i < func->stack->used; i++)
@@ -20,35 +20,35 @@ void asm64_stackfree(void)
     }
 }
 
-int asm64_load(int val)
+int asm16_load(int val)
 {
     int reg = ralloc();
     fprintf(out_f, "\tmov\t\t%s, %d\n", reginfo->reglist[reg], val);
     return reg;
 }
 
-int asm64_loadstr(int id)
+int asm16_loadstr(int id)
 {
     int reg = ralloc();
     fprintf(out_f, "\tmov\t\t%s, S%d\n", reginfo->reglist[reg], id);
     return reg;
 }
 
-int asm64_add(int reg0, int reg1)
+int asm16_add(int reg0, int reg1)
 {
     fprintf(out_f, "\tadd\t\t%s, %s\n", reginfo->reglist[reg0], reginfo->reglist[reg1]);
     rfree(reg1);
     return reg0;
 }
 
-int asm64_sub(int reg0, int reg1)
+int asm16_sub(int reg0, int reg1)
 {
     fprintf(out_f, "\tsub\t\t%s, %s\n", reginfo->reglist[reg0], reginfo->reglist[reg1]);
     rfree(reg1);
     return reg0;
 }
 
-int asm64_mul(int reg0, int reg1)
+int asm16_mul(int reg0, int reg1)
 {
     if (type.addr)
     {
@@ -85,7 +85,7 @@ int asm64_mul(int reg0, int reg1)
     return reg0;
 }
 
-int asm64_div(int reg0, int reg1)
+int asm16_div(int reg0, int reg1)
 {
     fprintf(out_f, "\tpush\trax\n");
     fprintf(out_f, "\tmov\t\trax, %s\n", reginfo->reglist[reg0]);
@@ -121,14 +121,14 @@ int asm64_div(int reg0, int reg1)
     return reg0;
 }
 
-int asm64_mod(int reg0, int reg1)
+int asm16_mod(int reg0, int reg1)
 {
-    asm64_div(reg0, reg1);
+    asm16_div(reg0, reg1);
     fprintf(out_f, "\tmov\t\t%s, rdx\n", reginfo->reglist[reg0]);
     return reg0;
 }
 
-int asm64_lognot(int reg)
+int asm16_lognot(int reg)
 {
     int tmp = ralloc();
     fprintf(out_f, "\txor\t\t%s, %s\n", reginfo->reglist[tmp], reginfo->reglist[tmp]);
@@ -139,7 +139,7 @@ int asm64_lognot(int reg)
     return reg;
 }
 
-int asm64_bitnot(int reg)
+int asm16_bitnot(int reg)
 {
     if (type.addr)
     {
@@ -170,7 +170,7 @@ int asm64_bitnot(int reg)
     return reg;
 }
 
-int asm64_neg(int reg)
+int asm16_neg(int reg)
 {
     if (type.addr)
     {
@@ -201,21 +201,21 @@ int asm64_neg(int reg)
     return reg;
 }
 
-int asm64_bitor(int reg0, int reg1)
+int asm16_bitor(int reg0, int reg1)
 {
     fprintf(out_f, "\tor\t\t%s, %s\n", reginfo->reglist[reg0], reginfo->reglist[reg1]);
     rfree(reg1);
     return reg0;
 }
 
-int asm64_bitand(int reg0, int reg1)
+int asm16_bitand(int reg0, int reg1)
 {
     fprintf(out_f, "\tand\t\t%s, %s\n", reginfo->reglist[reg0], reginfo->reglist[reg1]);
     rfree(reg1);
     return reg0;
 }
 
-int asm64_logor(int reg0, int reg1)
+int asm16_logor(int reg0, int reg1)
 {
     int tmp = ralloc();
     fprintf(out_f, "\txor\t\t%s, %s\n", reginfo->reglist[tmp], reginfo->reglist[tmp]);
@@ -229,10 +229,10 @@ int asm64_logor(int reg0, int reg1)
     fprintf(out_f, "\tmov\t\t%s, %s\n", reginfo->reglist[reg1], reginfo->reglist[tmp]);
 
     rfree(tmp);
-    return asm64_bitor(reg0, reg1);
+    return asm16_bitor(reg0, reg1);
 }
 
-int asm64_logand(int reg0, int reg1)
+int asm16_logand(int reg0, int reg1)
 {
     int tmp = ralloc();
     fprintf(out_f, "\txor\t\t%s, %s\n", reginfo->reglist[tmp], reginfo->reglist[tmp]);
@@ -247,17 +247,17 @@ int asm64_logand(int reg0, int reg1)
 
     rfree(tmp);
     
-    return asm64_bitand(reg0, reg1);
+    return asm16_bitand(reg0, reg1);
 }
 
-int asm64_bitxor(int reg0, int reg1)
+int asm16_bitxor(int reg0, int reg1)
 {
     fprintf(out_f, "\txor\t\t%s, %s\n", reginfo->reglist[reg0], reginfo->reglist[reg1]);
     rfree(reg1);
     return reg0;
 }
 
-int asm64_lshift(int reg0, int reg1)
+int asm16_lshift(int reg0, int reg1)
 {
     fprintf(out_f, "\tpush\trcx\n");
     fprintf(out_f, "\tmov\t\trcx, %s\n", reginfo->reglist[reg1]);
@@ -267,7 +267,7 @@ int asm64_lshift(int reg0, int reg1)
     return reg0;
 }
 
-int asm64_rshift(int reg0, int reg1)
+int asm16_rshift(int reg0, int reg1)
 {
     fprintf(out_f, "\tpush\trcx\n");
     fprintf(out_f, "\tmov\t\trcx, %s\n", reginfo->reglist[reg1]);
@@ -277,7 +277,7 @@ int asm64_rshift(int reg0, int reg1)
     return reg0;
 }
 
-int asm64_addr(Sym *sym)
+int asm16_addr(Sym *sym)
 {
     int reg = ralloc();
 
@@ -295,7 +295,7 @@ int asm64_addr(Sym *sym)
     return reg;
 }
 
-int asm64_deref(int reg)
+int asm16_deref(int reg)
 {
     type.addr--;
 
@@ -328,7 +328,7 @@ int asm64_deref(int reg)
     return reg;
 }
 
-int asm64_loadglob(Sym *sym)
+int asm16_loadglob(Sym *sym)
 {
     int reg = ralloc();
 
@@ -357,7 +357,7 @@ int asm64_loadglob(Sym *sym)
     return reg;
 }
 
-int asm64_storeglob(int reg, Sym *sym)
+int asm16_storeglob(int reg, Sym *sym)
 {
     if (type.addr)
     {
@@ -388,7 +388,7 @@ int asm64_storeglob(int reg, Sym *sym)
     return reg;
 }
 
-int asm64_loadlocl(Sym *sym)
+int asm16_loadlocl(Sym *sym)
 {
     int reg = ralloc();
 
@@ -417,7 +417,7 @@ int asm64_loadlocl(Sym *sym)
     return reg;
 }
 
-int asm64_storelocl(int reg, Sym *sym)
+int asm16_storelocl(int reg, Sym *sym)
 {
     if (type.addr)
     {
@@ -448,7 +448,7 @@ int asm64_storelocl(int reg, Sym *sym)
     return reg;
 }
 
-int asm64_storederef(int reg0, int reg1, Sym *sym)
+int asm16_storederef(int reg0, int reg1, Sym *sym)
 {
     if (type.addr) type.addr--;
 
@@ -480,12 +480,12 @@ int asm64_storederef(int reg0, int reg1, Sym *sym)
     return reg0;
 }
 
-void asm64_label(int l)
+void asm16_label(int l)
 {
     fprintf(out_f, "L%d:\n", l);
 }
 
-int asm64_cmpset(int reg0, int reg1, char *ins)
+int asm16_cmpset(int reg0, int reg1, char *ins)
 {
     if (type.addr)
     {
@@ -520,22 +520,22 @@ int asm64_cmpset(int reg0, int reg1, char *ins)
     return reg0;
 }
 
-void asm64_cmpz(int reg)
+void asm16_cmpz(int reg)
 {
     fprintf(out_f, "\tcmp\t\t%s, 0\n", reginfo->reglist[reg]);
 }
 
-void asm64_jumpeq(int l)
+void asm16_jumpeq(int l)
 {
     fprintf(out_f, "\tje\t\tL%d\n", l);
 }
 
-void asm64_jump(int l)
+void asm16_jump(int l)
 {
     fprintf(out_f, "\tjmp\t\tL%d\n", l);
 }
 
-int asm64_alloc(Sym *sym)
+int asm16_alloc(Sym *sym)
 {
     dl_add(func->stack, &sym);
     fprintf(out_f, "\tsub\t\trsp, %d\n", type2size(sym->type) * sym->size);
@@ -545,7 +545,7 @@ int asm64_alloc(Sym *sym)
     return NULLREG;
 }
 
-int asm64_func(Node *root)
+int asm16_func(Node *root)
 {
     top = 0;
     fprintf(out_f, "%s:\n", func->name);
@@ -559,8 +559,8 @@ int asm64_func(Node *root)
         Sym *sym = func->local->get[i];
         type = sym->type;
 
-        asm64_alloc(sym);
-        asm64_storelocl(i, sym);
+        asm16_alloc(sym);
+        asm16_storelocl(i, sym);
     }
 
     reginfo = &std64;
@@ -569,7 +569,7 @@ int asm64_func(Node *root)
     return NULLREG;
 }
 
-int asm64_call(int reg, Node *args)
+int asm16_call(int reg, Node *args)
 {
     RegInfo *tmp;
     int align = 32, offs, *regalloc;
@@ -646,7 +646,7 @@ int asm64_call(int reg, Node *args)
     return reg;
 }
 
-int asm64_ret(int reg)
+int asm16_ret(int reg)
 {
     if (reg != NULLREG)
     {
@@ -657,19 +657,19 @@ int asm64_ret(int reg)
     return NULLREG;
 }
 
-int asm64_break(void)
+int asm16_break(void)
 {
-    asm64_jump(end);
+    asm16_jump(end);
     return NULLREG;
 }
 
-int asm64_continue(void)
+int asm16_continue(void)
 {
-    asm64_jump(start);
+    asm16_jump(start);
     return NULLREG;
 }
 
-int asm64_if(Node *root, int cmd)
+int asm16_if(Node *root, int cmd)
 {
     int if_e, else_e, reg;
 
@@ -680,15 +680,15 @@ int asm64_if(Node *root, int cmd)
 
     // condition
     reg = gen(root->mid, NULLREG, cmd);
-    asm64_cmpz(reg);
-    asm64_jumpeq(if_e);
+    asm16_cmpz(reg);
+    asm16_jumpeq(if_e);
 
     // if body
     rfree_all();
     gen(root->left, NULLREG, cmd);
     rfree_all();
-    if (root->right) asm64_jump(else_e);
-    asm64_label(if_e);
+    if (root->right) asm16_jump(else_e);
+    asm16_label(if_e);
 
     // else body
     if (root->right)
@@ -696,16 +696,16 @@ int asm64_if(Node *root, int cmd)
         rfree_all();
         gen(root->right, NULLREG, cmd);
         rfree_all();
-        asm64_label(else_e);
+        asm16_label(else_e);
     }
     
     func->level--;
-    asm64_stackfree();
+    asm16_stackfree();
 
     return NULLREG;
 }
 
-int asm64_while(Node *root, int cmd)
+int asm16_while(Node *root, int cmd)
 {
     int last_s, last_e, reg;
 
@@ -719,22 +719,22 @@ int asm64_while(Node *root, int cmd)
     func->level++;
 
     // condition
-    asm64_label(start);
+    asm16_label(start);
     reg = gen(root->mid, NULLREG, cmd);
-    asm64_cmpz(reg);
+    asm16_cmpz(reg);
 
-    asm64_jumpeq(end);
+    asm16_jumpeq(end);
 
     // body
     rfree_all();
     gen(root->left, NULLREG, cmd);
     rfree_all();
 
-    asm64_jump(start);
-    asm64_label(end);
+    asm16_jump(start);
+    asm16_label(end);
 
     func->level--;
-    asm64_stackfree();
+    asm16_stackfree();
 
     // put labels back
     start = last_s;
@@ -743,7 +743,7 @@ int asm64_while(Node *root, int cmd)
     return NULLREG;
 }
 
-int asm64_for(Node *root, int cmd)
+int asm16_for(Node *root, int cmd)
 {
     int last_s, last_e, reg, enter;
 
@@ -762,21 +762,21 @@ int asm64_for(Node *root, int cmd)
     gen(root->left->left, NULLREG, cmd);
     rfree_all();
 
-    asm64_jump(enter);
-    asm64_label(start);
+    asm16_jump(enter);
+    asm16_label(start);
 
     // increment/decrement
     rfree_all();
     gen(root->right, NULLREG, cmd);
     rfree_all();
 
-    asm64_label(enter);
+    asm16_label(enter);
 
     // condition
     rfree_all();
     reg = gen(root->mid, NULLREG, cmd);
-    asm64_cmpz(reg);
-    asm64_jumpeq(end);
+    asm16_cmpz(reg);
+    asm16_jumpeq(end);
     rfree_all();
 
     // body
@@ -785,11 +785,11 @@ int asm64_for(Node *root, int cmd)
     rfree_all();
 
     // end
-    asm64_jump(start);
-    asm64_label(end);
+    asm16_jump(start);
+    asm16_label(end);
 
     func->level--;
-    asm64_stackfree();
+    asm16_stackfree();
 
     // put labels back
     start = last_s;
@@ -798,19 +798,19 @@ int asm64_for(Node *root, int cmd)
     return NULLREG;
 }
 
-int asm64_ulabel(char *name)
+int asm16_ulabel(char *name)
 {
     fprintf(out_f, "%s:\n", name);
     return NULLREG;
 }
 
-int asm64_goto(char *name)
+int asm16_goto(char *name)
 {
     fprintf(out_f, "\tjmp\t\t%s\n", name);
     return NULLREG;
 }
 
-int asm64_incdec(int reg, char *ins)
+int asm16_incdec(int reg, char *ins)
 {
 
     if (type.addr)
@@ -842,7 +842,7 @@ int asm64_incdec(int reg, char *ins)
     return reg;
 }
 
-void asm64_preamble(void)
+void asm16_preamble(void)
 {
     // main directive
     fprintf(out_f, "\tglobal  main\n\n");
@@ -851,7 +851,7 @@ void asm64_preamble(void)
     fprintf(out_f, "\tsection .text\n");
 }
 
-void asm64_postamble(void)
+void asm16_postamble(void)
 {
     // externs
     for (int i = 0; i < glob->used; i++)

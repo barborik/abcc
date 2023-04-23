@@ -15,12 +15,14 @@
 #include "expr.h"
 #include "sym.h"
 #include "kword.h"
-#include "asm64.h"
 #include "gen.h"
 #include "stmt.h"
 #include "decl.h"
 #include "map.h"
 #include "prep.h"
 #include "input.h"
+#include "asm.h"
+#include "asm16.h"
+#include "asm64.h"
 
 #endif

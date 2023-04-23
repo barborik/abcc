@@ -131,6 +131,13 @@ extern char *out_n;
 extern FILE *src_f;
 extern FILE *out_f;
 
+/* TARGET MODES */
+enum
+{
+    M_16,
+    M_64,
+};
+
 /* OPERATOR PRECEDENCE TABLE */
 static int prec[] = {
     NULL,             // OP_START
