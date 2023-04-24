@@ -1,3 +1,5 @@
+#define __MODE16_ORG_ 0x7e00
+
 #define SCREEN_WIDTH 80
 #define SCREEN_HEIGHT 25
 
@@ -9,7 +11,7 @@ U0 putc(I8 c, U8 x, U8 y)
     {
         mov ax, 0xB800
         mov es, ax
-        mov bx, word 0
+        mov bx, word (offs)
         mov al, byte (c)
         mov [es:bx], al
     }
@@ -19,6 +21,6 @@ U0 putc(I8 c, U8 x, U8 y)
 
 U0 main(U0)
 {
-    putc('L', 'L', 'L');
+    putc('L', 1, 1);
     return;
 }

@@ -788,10 +788,18 @@ int asm16_asm(char *code)
 
 void asm16_preamble(void)
 {
-    // main directive
-    fprintf(out_f, "\tglobal  main\n\n");
+    struct TPPKeyword *kword = TPPLexer_LookupKeyword("__MODE16_ORG_", strlen("__MODE16_ORG_"), 0);
+    fprintf(out_f, "\t[BITS 16]\n");
+    if (kword)
+    {
+        fprintf(out_f, "\t[ORG %s]\n\n", kword->k_macro->f_begin);
+    }
+    else
+    {
+        fprintf(out_f, "\n");
+    }
 
-    // text section
+    fprintf(out_f, "\tglobal  main\n\n");
     fprintf(out_f, "\tsection .text\n");
 }
 

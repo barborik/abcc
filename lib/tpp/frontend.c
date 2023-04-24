@@ -972,7 +972,7 @@ use_infile:
 		(TPPLexer_Current->l_errorcount != 0))
 		result = 1;
 end:
-	TPP_FINALIZE();
+	// TPP_FINALIZE();
 #ifdef _CRTDBG_MAP_ALLOC
 	_CrtDumpMemoryLeaks();
 #endif /* _CRTDBG_MAP_ALLOC */

@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "tpp.h"
+
 #include "dlist.h"
 #include "defs.h"
 #include "lex.h"

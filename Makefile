@@ -3,7 +3,7 @@ CC = gcc
 CFLAGS = -g -Wall -Wextra -Wpedantic
 LFLAGS = 
 
-INCL = 
+INCL = -I lib/tpp/
 LIBS = 
 
 TARGET = bin/abcc

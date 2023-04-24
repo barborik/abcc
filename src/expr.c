@@ -3,7 +3,10 @@
 Node *explist(void)
 {
     Tok *tok;
-    Node *root = NULL, *right = NULL;
+    Node *root = NULL, *right = NULL, *top;
+
+    dlist_t stack;
+    dl_init(&stack, sizeof(Node *));
 
     while (1)
     {
@@ -15,6 +18,8 @@ Node *explist(void)
         right = binexp(0);
         root = mknode(ST_JOIN, root, NULL, right);
 
+        dl_ins(&stack, &right, 0);
+
         next(&tok);
         back();
 
@@ -25,6 +30,18 @@ Node *explist(void)
         next(&tok);
     }
 
+    if (mode == M_16)
+    {
+        root = NULL;
+        while (stack.used)
+        {
+            top = *(Node **)stack.get[0];
+            dl_rem(&stack, 0);
+            root = mknode(ST_JOIN, root, NULL, top);
+        }
+    }
+
+    dl_free(&stack);
     return root;
 }
 
