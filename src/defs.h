@@ -2,6 +2,8 @@
 #define __DEFS_
 
 /*
+https://en.wikibooks.org/wiki/X86_Assembly/X86_Architecture
+
 64-bit register | Lower 32 bits | Lower 16 bits | Lower 8 bits
 ==============================================================
 rax             | eax           | ax            | al
@@ -31,10 +33,36 @@ WINDOWS - float              | XMM0  | XMM1   | XMM2  | XMM3   | stack
 WINDOWS - integer or pointer | rcx   | rdx    | r8    | r9     | stack
 */
 
-/*
-register list
-https://en.wikibooks.org/wiki/X86_Assembly/X86_Architecture
-*/
+typedef struct
+{
+    int nregs;
+
+    char **reglist;
+    int *regalloc;
+
+    char **reglist64;
+    char **reglist32;
+    char **reglist16;
+    char **reglist8;
+} RegInfo;
+
+/* 16-bit */
+#define NREGS_STD16 6
+
+static char *reglist16_std16[] = {"ax", "bx", "cx", "dx", "si", "di"};
+static char *reglist8_std16[] = {"al", "bl", "cl", "dl", "sil", "dil"};
+
+static int regalloc_std16[] = {0, 0, 0, 0, 0, 0};
+
+static const RegInfo std16 = {
+    .nregs = NREGS_STD16,
+    .reglist = reglist16_std16,
+    .regalloc = regalloc_std16,
+    .reglist16 = reglist16_std16,
+    .reglist8 = reglist8_std16,
+};
+
+/* 64-bit */
 #define NREGS_STD64 14
 #define NREGS_WIN64 4
 #define NREGS_ELF64 6
@@ -54,22 +82,9 @@ static char *reglist32_elf64[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
 static char *reglist16_elf64[] = {"di", "si", "dx", "cx", "r8w", "r9w"};
 static char *reglist8_elf64[] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
 
-static int regalloc_std64[] = {0, 0, 0, 0};
+static int regalloc_std64[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 static int regalloc_win64[] = {0, 0, 0, 0};
 static int regalloc_elf64[] = {0, 0, 0, 0, 0, 0};
-
-typedef struct
-{
-    int nregs;
-
-    char **reglist;
-    int *regalloc;
-
-    char **reglist64;
-    char **reglist32;
-    char **reglist16;
-    char **reglist8;
-} RegInfo;
 
 static const RegInfo std64 = {
     .nregs = NREGS_STD64,
@@ -119,6 +134,7 @@ typedef struct type Type;
 typedef struct node Node;
 
 /* EXTERNS */
+extern int mode;
 extern RegInfo *reginfo;
 
 extern Sym *sym;
@@ -210,6 +226,7 @@ enum
     LT_ELSE,  // else
     LT_WHILE, // while
     LT_FOR,   // for
+    LT_ASM,   // inline assembly
     LT_BLOCK_END,
 
     LT_IDENT,    // identifier
@@ -290,6 +307,7 @@ enum
     ST_IF,    // if statement
     ST_WHILE, // while loop
     ST_FOR,   // for loop
+    ST_ASM,   // inline assembly
     ST_BLOCK_END,
 
     /* OTHER */

@@ -121,5 +121,31 @@ int match(const char *kword, Tok *t)
         return 1;
     }
 
+    /* INLINE ASSEMBLY */
+    if (!strcmp(kword, "__asm"))
+    {
+        int c, i = 0;
+        char code[4096];
+
+        nextc(); // {
+        c = fgetc(src_f);
+
+        while (c != '}')
+        {
+            code[i] = c;
+            c = fgetc(src_f);
+            i++;
+        }
+        code[i] = 0;
+
+        char *final = malloc(i + 1);
+        strcpy(final, code);
+
+        t->token = LT_ASM;
+        t->val.i = adduniq(final);
+
+        return 1;
+    }
+
     return 0;
 }

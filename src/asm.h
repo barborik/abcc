@@ -2,7 +2,7 @@
 #define __ASM_
 
 extern int start, end;
-extern int label, top;
+extern int label, top, pushed;
 
 /* UTILITY */
 int ralloc(void);     /* SHARED */
@@ -20,6 +20,7 @@ extern int (*asm_loadlocl)(Sym *sym);
 extern int (*asm_storeglob)(int reg, Sym *sym);
 extern int (*asm_storelocl)(int reg, Sym *sym);
 extern int (*asm_storederef)(int reg0, int reg1, Sym *sym);
+extern int (*asm_push)(int reg);
 
 /* ARITHMETIC OPERATIONS */
 extern int (*asm_add)(int reg0, int reg1);
@@ -70,6 +71,7 @@ extern void (*asm_jump)(int l);
 extern int (*asm_alloc)(Sym *sym);
 
 /* OTHER: 2 ELECTRIC BOOGALOO */
+extern int (*asm_asm)(char *code);
 extern int (*asm_func)(Node *root);
 extern int (*asm_call)(int reg, Node *args);
 extern void (*asm_preamble)(void);

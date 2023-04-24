@@ -1,7 +1,7 @@
 #include "includes.h"
 
 int start, end;
-int label = 1, top = 0;
+int label = 1, top = 0, pushed = 0;
 
 /* UTILITY */
 int ralloc(void)
@@ -40,6 +40,7 @@ int (*asm_loadlocl)(Sym *sym);
 int (*asm_storeglob)(int reg, Sym *sym);
 int (*asm_storelocl)(int reg, Sym *sym);
 int (*asm_storederef)(int reg0, int reg1, Sym *sym);
+int (*asm_push)(int reg);
 
 /* ARITHMETIC OPERATIONS */
 int (*asm_add)(int reg0, int reg1);
@@ -90,6 +91,7 @@ void (*asm_jump)(int l);
 int (*asm_alloc)(Sym *sym);
 
 /* OTHER: 2 ELECTRIC BOOGALOO */
+int (*asm_asm)(char *code);
 int (*asm_func)(Node *root);
 int (*asm_call)(int reg, Node *args);
 void (*asm_preamble)(void);

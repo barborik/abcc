@@ -28,7 +28,7 @@ int next(Tok **t)
 
 // goes one token back in the tokens list
 // returns 1 on success and 0 on failure
-int back()
+int back(void)
 {
     if (tindex == 0)
     {
@@ -40,7 +40,7 @@ int back()
 }
 
 // resets the token iterator
-void reset()
+void reset(void)
 {
     tindex = 0;
 }
@@ -457,7 +457,7 @@ int scan(Tok *t)
     return 1;
 }
 
-void lex()
+void lex(void)
 {
     file = malloc(256);
     tokens = malloc(sizeof(dlist_t));

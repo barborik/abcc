@@ -120,11 +120,15 @@ int type2size(Type type)
     return 0;
 }
 
-void mode(int m)
+void bitmode(int m)
 {
+    mode = m;
+
     switch (m)
     {
     case M_16:
+        reginfo = &std16;
+
         asm_stackfree = asm16_stackfree;
         asm_load = asm16_load;
         asm_loadstr = asm16_loadstr;
@@ -133,6 +137,7 @@ void mode(int m)
         asm_storeglob = asm16_storeglob;
         asm_storelocl = asm16_storelocl;
         asm_storederef = asm16_storederef;
+        asm_push = asm16_push;
         asm_add = asm16_add;
         asm_sub = asm16_sub;
         asm_mul = asm16_mul;
@@ -165,12 +170,15 @@ void mode(int m)
         asm_jumpeq = asm16_jumpeq;
         asm_jump = asm16_jump;
         asm_alloc = asm16_alloc;
+        asm_asm = asm16_asm;
         asm_func = asm16_func;
         asm_call = asm16_call;
         asm_preamble = asm16_preamble;
         asm_postamble = asm16_postamble;
         break;
     case M_64:
+        reginfo = &std64;
+
         asm_stackfree = asm64_stackfree;
         asm_load = asm64_load;
         asm_loadstr = asm64_loadstr;
@@ -179,6 +187,7 @@ void mode(int m)
         asm_storeglob = asm64_storeglob;
         asm_storelocl = asm64_storelocl;
         asm_storederef = asm64_storederef;
+        asm_push = asm64_push;
         asm_add = asm64_add;
         asm_sub = asm64_sub;
         asm_mul = asm64_mul;
@@ -211,6 +220,7 @@ void mode(int m)
         asm_jumpeq = asm64_jumpeq;
         asm_jump = asm64_jump;
         asm_alloc = asm64_alloc;
+        asm_asm = asm16_asm;
         asm_func = asm64_func;
         asm_call = asm64_call;
         asm_preamble = asm64_preamble;

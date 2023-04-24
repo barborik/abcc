@@ -25,10 +25,18 @@ int gen(Node *root, int reg, int cmd)
         }
     }
 
-    switch (cmd)
+    switch (mode)
     {
-    case A_EXEC: reginfo = &std64; break;
-    case A_ARGS: reginfo = &arg64; break;
+    case M_16:
+        reginfo = &std16;
+        break;
+    case M_64:
+        switch (cmd)
+        {
+        case A_EXEC: reginfo = &std64; break;
+        case A_ARGS: reginfo = &arg64; break;
+        }
+        break;
     }
 
     // DEBUG
@@ -104,12 +112,28 @@ int gen(Node *root, int reg, int cmd)
     case ST_ADDR: return asm_addr(sym);
     case ST_ALLOC: return asm_alloc(sym);
     case ST_JOIN:
-        gen(root->left, NULLREG, cmd);
+        leftreg = gen(root->left, NULLREG, cmd);
+        if (mode == M_16 && cmd == A_ARGS)
+        {
+            if (leftreg != NULLREG) 
+            {
+                asm_push(leftreg);
+                rfree(leftreg);
+            }
+        }
         if (cmd != A_ARGS)
         {
             rfree_all();
         }
-        gen(root->right, NULLREG, cmd);
+        leftreg = gen(root->right, NULLREG, cmd);
+        if (mode == M_16 && cmd == A_ARGS)
+        {
+            if (leftreg != NULLREG)
+            {
+                asm_push(leftreg);
+                rfree(leftreg);
+            }
+        }
         if (cmd != A_ARGS)
         {
             rfree_all();
@@ -143,6 +167,7 @@ int gen(Node *root, int reg, int cmd)
     case ST_CONTINUE: return asm_continue();
     case ST_LABEL: return asm_ulabel(sym->name);
     case ST_GOTO: return asm_goto(sym->name);
+    case ST_ASM: return asm_asm(*(char **)uniq->get[tok->val.i]);
     }
 
     printf("ERROR: line %d, token: %d\n", tok->line, tok->token);

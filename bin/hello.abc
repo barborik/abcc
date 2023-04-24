@@ -1,7 +1,0 @@
-extern U0 printf(I8* fmt, ...);
-
-I32 main(U0)
-{
-    printf("Hello, World!\n");
-    return 0;
-}

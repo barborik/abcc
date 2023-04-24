@@ -480,6 +480,42 @@ int asm64_storederef(int reg0, int reg1, Sym *sym)
     return reg0;
 }
 
+int asm64_push(int reg)
+{
+    if (type.addr)
+    {
+        pushed += 8;
+        fprintf(out_f, "\tpush\t%s\n", reginfo->reglist[reg]);
+        return reg;
+    }
+
+    switch (type.type)
+    {
+    case LT_U8:
+    case LT_I8:
+        pushed += 4;
+        fprintf(out_f, "\tpush\t%s\n", reginfo->reglist32[reg]);
+        break;
+    case LT_U16:
+    case LT_I16:
+        pushed += 4;
+        fprintf(out_f, "\tpush\t%s\n", reginfo->reglist32[reg]);
+        break;
+    case LT_U32:
+    case LT_I32:
+        pushed += 4;
+        fprintf(out_f, "\tpush\t%s\n", reginfo->reglist32[reg]);
+        break;
+    case LT_U64:
+    case LT_I64:
+        pushed += 8;
+        fprintf(out_f, "\tpush\t%s\n", reginfo->reglist64[reg]);
+        break;
+    }
+
+    return reg;
+}
+
 void asm64_label(int l)
 {
     fprintf(out_f, "L%d:\n", l);
@@ -840,6 +876,52 @@ int asm64_incdec(int reg, char *ins)
     }
 
     return reg;
+}
+
+int asm64_asm(char *code)
+{
+    Tok  tok;
+    Sym *sym;
+    char name[128];
+    int c, len = strlen(code);
+
+    for (int i = 0; i < len; i++)
+    {
+        c = code[i];
+
+        /* ABC variable reference in inline assembly */
+        if (c == '(')
+        {
+            i++;
+            c = code[i];
+
+            for (int j = 0; j < len && c != ')'; j++)
+            {
+                name[j] = c;
+                name[j + 1] = 0;
+                c = code[i + j + 1];
+            }
+            
+            tok.val.i = adduniq(name);
+            sym = getsym(&tok);
+
+            switch (sym->class)
+            {
+            case C_GLOB:
+                fprintf(out_f, "%s", sym->name);
+            case C_LOCL:
+                fprintf(out_f, "[sp - %d]", sym->offs);
+            }
+
+            i += strlen(name);
+        }
+        else
+        {
+            fputc(c, out_f);
+        }
+    }
+
+    return NULLREG;
 }
 
 void asm64_preamble(void)

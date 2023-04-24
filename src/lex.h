@@ -14,9 +14,9 @@ struct tok
 };
 
 int next(Tok **t);
-int back();
-void reset();
+int back(void);
+void reset(void);
 int tokseq(int n, ...);
-void lex();
+void lex(void);
 
 #endif

@@ -112,8 +112,7 @@ Sym *getsym(Tok *t)
     char **name = *(char **)uniq->get[t->val.i];
 
     sym = findlocl(name);
-    if (!sym)
-        sym = findglob(name);
+    if (!sym) sym = findglob(name);
     return sym;
 }
 

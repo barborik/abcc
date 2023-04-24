@@ -64,7 +64,7 @@ flags:
       
   -cc <calling convention>
        sysv   SystemV (Linux, most Unix variants)
-       ms6$   Microsoft x64 (Windows)
+       ms64   Microsoft x64 (Windows)
 ```
 
 ### <ins>DRAWBACKS</ins>

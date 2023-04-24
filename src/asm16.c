@@ -16,7 +16,7 @@ void asm16_stackfree(void)
     if (add)
     {
         top -= add;
-        fprintf(out_f, "\tadd\t\trsp, %d\n", add);
+        fprintf(out_f, "\tadd\t\tsp, %d\n", add);
     }
 }
 
@@ -52,11 +52,11 @@ int asm16_mul(int reg0, int reg1)
 {
     if (type.addr)
     {
-        fprintf(out_f, "\tpush\trax\n");
-        fprintf(out_f, "\tmov\t\trax, %s\n", reginfo->reglist[reg0]);
+        fprintf(out_f, "\tpush\tax\n");
+        fprintf(out_f, "\tmov\t\tax, %s\n", reginfo->reglist[reg0]);
         fprintf(out_f, "\tmul\t\t%s\n", reginfo->reglist[reg1]);
-        fprintf(out_f, "\tmov\t\t%s, rax\n", reginfo->reglist[reg0]);
-        fprintf(out_f, "\tpop\t\trax\n");
+        fprintf(out_f, "\tmov\t\t%s, ax\n", reginfo->reglist[reg0]);
+        fprintf(out_f, "\tpop\t\tax\n");
         rfree(reg1);
         return reg0;
     }
@@ -65,19 +65,15 @@ int asm16_mul(int reg0, int reg1)
     {
     case LT_I8:
     case LT_I16:
-    case LT_I32:
-    case LT_I64:
         fprintf(out_f, "\timul\t%s, %s\n", reginfo->reglist[reg0], reginfo->reglist[reg1]);
         break;
     case LT_U8:
     case LT_U16:
-    case LT_U32:
-    case LT_U64:
-        fprintf(out_f, "\tpush\trax\n");
-        fprintf(out_f, "\tmov\t\trax, %s\n", reginfo->reglist[reg0]);
+        fprintf(out_f, "\tpush\tax\n");
+        fprintf(out_f, "\tmov\t\tax, %s\n", reginfo->reglist[reg0]);
         fprintf(out_f, "\tmul\t\t%s\n", reginfo->reglist[reg1]);
-        fprintf(out_f, "\tmov\t\t%s, rax\n", reginfo->reglist[reg0]);
-        fprintf(out_f, "\tpop\t\trax\n");
+        fprintf(out_f, "\tmov\t\t%s, ax\n", reginfo->reglist[reg0]);
+        fprintf(out_f, "\tpop\t\tax\n");
         break;
     }
     
@@ -87,14 +83,14 @@ int asm16_mul(int reg0, int reg1)
 
 int asm16_div(int reg0, int reg1)
 {
-    fprintf(out_f, "\tpush\trax\n");
-    fprintf(out_f, "\tmov\t\trax, %s\n", reginfo->reglist[reg0]);
+    fprintf(out_f, "\tpush\tax\n");
+    fprintf(out_f, "\tmov\t\tax, %s\n", reginfo->reglist[reg0]);
     fprintf(out_f, "\tcqo\n");
 
     if (type.addr)
     {
         fprintf(out_f, "\tdiv\t%s\n", reginfo->reglist[reg1]);
-        fprintf(out_f, "\tmov\t\t%s, rax\n", reginfo->reglist[reg0]);
+        fprintf(out_f, "\tmov\t\t%s, ax\n", reginfo->reglist[reg0]);
         rfree(reg1);
         return reg0;
     }
@@ -103,20 +99,16 @@ int asm16_div(int reg0, int reg1)
     {
     case LT_I8:
     case LT_I16:
-    case LT_I32:
-    case LT_I64:
         fprintf(out_f, "\tidiv\t%s\n", reginfo->reglist[reg1]);
         break;
     case LT_U8:
     case LT_U16:
-    case LT_U32:
-    case LT_U64:
         fprintf(out_f, "\tdiv\t%s\n", reginfo->reglist[reg1]);
         break;
     }
     
-    fprintf(out_f, "\tmov\t\t%s, rax\n", reginfo->reglist[reg0]);
-    fprintf(out_f, "\tpop\t\trax\n");
+    fprintf(out_f, "\tmov\t\t%s, ax\n", reginfo->reglist[reg0]);
+    fprintf(out_f, "\tpop\t\tax\n");
     rfree(reg1);
     return reg0;
 }
@@ -124,7 +116,7 @@ int asm16_div(int reg0, int reg1)
 int asm16_mod(int reg0, int reg1)
 {
     asm16_div(reg0, reg1);
-    fprintf(out_f, "\tmov\t\t%s, rdx\n", reginfo->reglist[reg0]);
+    fprintf(out_f, "\tmov\t\t%s, dx\n", reginfo->reglist[reg0]);
     return reg0;
 }
 
@@ -143,7 +135,7 @@ int asm16_bitnot(int reg)
 {
     if (type.addr)
     {
-        fprintf(out_f, "\tnot\t\t%s\n", reginfo->reglist64[reg]);
+        fprintf(out_f, "\tnot\t\t%s\n", reginfo->reglist16[reg]);
         return reg;
     }
 
@@ -157,14 +149,6 @@ int asm16_bitnot(int reg)
     case LT_I16:
         fprintf(out_f, "\tnot\t\t%s\n", reginfo->reglist16[reg]);
         break;
-    case LT_U32:
-    case LT_I32:
-        fprintf(out_f, "\tnot\t\t%s\n", reginfo->reglist32[reg]);
-        break;
-    case LT_U64:
-    case LT_I64:
-        fprintf(out_f, "\tnot\t\t%s\n", reginfo->reglist64[reg]);
-        break;
     }
 
     return reg;
@@ -174,7 +158,7 @@ int asm16_neg(int reg)
 {
     if (type.addr)
     {
-        fprintf(out_f, "\tneg\t\t%s\n", reginfo->reglist64[reg]);
+        fprintf(out_f, "\tneg\t\t%s\n", reginfo->reglist16[reg]);
         return reg;
     }
 
@@ -187,14 +171,6 @@ int asm16_neg(int reg)
     case LT_U16:
     case LT_I16:
         fprintf(out_f, "\tneg\t\t%s\n", reginfo->reglist16[reg]);
-        break;
-    case LT_U32:
-    case LT_I32:
-        fprintf(out_f, "\tneg\t\t%s\n", reginfo->reglist32[reg]);
-        break;
-    case LT_U64:
-    case LT_I64:
-        fprintf(out_f, "\tneg\t\t%s\n", reginfo->reglist64[reg]);
         break;
     }
 
@@ -259,20 +235,20 @@ int asm16_bitxor(int reg0, int reg1)
 
 int asm16_lshift(int reg0, int reg1)
 {
-    fprintf(out_f, "\tpush\trcx\n");
-    fprintf(out_f, "\tmov\t\trcx, %s\n", reginfo->reglist[reg1]);
+    fprintf(out_f, "\tpush\tcx\n");
+    fprintf(out_f, "\tmov\t\tcx, %s\n", reginfo->reglist[reg1]);
     fprintf(out_f, "\tshl\t\t%s, cl\n", reginfo->reglist[reg0]);
-    fprintf(out_f, "\tpop\t\trcx\n");
+    fprintf(out_f, "\tpop\t\tcx\n");
     rfree(reg1);
     return reg0;
 }
 
 int asm16_rshift(int reg0, int reg1)
 {
-    fprintf(out_f, "\tpush\trcx\n");
-    fprintf(out_f, "\tmov\t\trcx, %s\n", reginfo->reglist[reg1]);
+    fprintf(out_f, "\tpush\tcx\n");
+    fprintf(out_f, "\tmov\t\tcx, %s\n", reginfo->reglist[reg1]);
     fprintf(out_f, "\tshr\t\t%s, cl\n", reginfo->reglist[reg0]);
-    fprintf(out_f, "\tpop\t\trcx\n");
+    fprintf(out_f, "\tpop\t\tcx\n");
     rfree(reg1);
     return reg0;
 }
@@ -283,7 +259,7 @@ int asm16_addr(Sym *sym)
 
     if (sym->class == C_LOCL)
     {
-        fprintf(out_f, "\tmov\t\t%s, rbp\n", reginfo->reglist[reg]);
+        fprintf(out_f, "\tmov\t\t%s, bp\n", reginfo->reglist[reg]);
         fprintf(out_f, "\tsub\t\t%s, %d\n", reginfo->reglist[reg], sym->offs);
     }
     else
@@ -301,7 +277,7 @@ int asm16_deref(int reg)
 
     if (type.addr)
     {
-        fprintf(out_f, "\tmov\t\t%s, [%s]\n", reginfo->reglist64[reg], reginfo->reglist[reg]);
+        fprintf(out_f, "\tmov\t\t%s, [%s]\n", reginfo->reglist16[reg], reginfo->reglist[reg]);
         return reg;
     }
 
@@ -315,14 +291,6 @@ int asm16_deref(int reg)
     case LT_I16:
         fprintf(out_f, "\tmov\t\t%s, WORD [%s]\n", reginfo->reglist16[reg], reginfo->reglist[reg]);
         break;
-    case LT_U32:
-    case LT_I32:
-        fprintf(out_f, "\tmov\t\t%s, DWORD [%s]\n", reginfo->reglist32[reg], reginfo->reglist[reg]);
-        break;
-    case LT_U64:
-    case LT_I64:
-        fprintf(out_f, "\tmov\t\t%s, QWORD [%s]\n", reginfo->reglist64[reg], reginfo->reglist[reg]);
-        break;
     }
 
     return reg;
@@ -334,24 +302,16 @@ int asm16_loadglob(Sym *sym)
 
     if (type.addr || sym->local)
     {
-        fprintf(out_f, "\tmov\t\t%s, QWORD %s\n", reginfo->reglist64[reg], sym->name);
+        fprintf(out_f, "\tmov\t\t%s, QWORD %s\n", reginfo->reglist16[reg], sym->name);
         return reg;
     }
 
     switch (type.type)
     {
-    case LT_U8:  fprintf(out_f, "\tmovzx\t%s, BYTE [%s]\n", reginfo->reglist32[reg], sym->name); break;
-    case LT_I8:  fprintf(out_f, "\tmovsx\t%s, BYTE [%s]\n", reginfo->reglist32[reg], sym->name); break;
-    case LT_U16: fprintf(out_f, "\tmovzx\t%s, WORD [%s]\n", reginfo->reglist32[reg], sym->name); break;
-    case LT_I16: fprintf(out_f, "\tmovsx\t%s, WORD [%s]\n", reginfo->reglist32[reg], sym->name); break;
-    case LT_U32:
-    case LT_I32:
-        fprintf(out_f, "\tmov\t\t%s, DWORD [%s]\n", reginfo->reglist32[reg], sym->name);
-        break;
-    case LT_U64:
-    case LT_I64:
-        fprintf(out_f, "\tmov\t\t%s, QWORD [%s]\n", reginfo->reglist64[reg], sym->name);
-        break;
+    case LT_U8:  fprintf(out_f, "\tmov\t\t%s, BYTE [%s]\n", reginfo->reglist8[reg], sym->name); break;
+    case LT_I8:  fprintf(out_f, "\tmov\t\t%s, BYTE [%s]\n", reginfo->reglist8[reg], sym->name); break;
+    case LT_U16: fprintf(out_f, "\tmov\t\t%s, WORD [%s]\n", reginfo->reglist16[reg], sym->name); break;
+    case LT_I16: fprintf(out_f, "\tmov\t\t%s, WORD [%s]\n", reginfo->reglist16[reg], sym->name); break;
     }
 
     return reg;
@@ -361,7 +321,7 @@ int asm16_storeglob(int reg, Sym *sym)
 {
     if (type.addr)
     {
-        fprintf(out_f, "\tmov\t\t[%s], %s\n", sym->name, reginfo->reglist64[reg]);
+        fprintf(out_f, "\tmov\t\t[%s], %s\n", sym->name, reginfo->reglist16[reg]);
         return reg;
     }
 
@@ -375,14 +335,6 @@ int asm16_storeglob(int reg, Sym *sym)
     case LT_I16:
         fprintf(out_f, "\tmov\t\t[%s], %s\n", sym->name, reginfo->reglist16[reg]);
         break;
-    case LT_U32:
-    case LT_I32:
-        fprintf(out_f, "\tmov\t\t[%s], %s\n", sym->name, reginfo->reglist32[reg]);
-        break;
-    case LT_U64:
-    case LT_I64:
-        fprintf(out_f, "\tmov\t\t[%s], %s\n", sym->name, reginfo->reglist64[reg]);
-        break;
     }
     
     return reg;
@@ -394,24 +346,16 @@ int asm16_loadlocl(Sym *sym)
 
     if (type.addr)
     {
-        fprintf(out_f, "\tmov\t\t%s, QWORD [rbp - %d]\n", reginfo->reglist64[reg], sym->offs);
+        fprintf(out_f, "\tmov\t\t%s, QWORD [bp - %d]\n", reginfo->reglist16[reg], sym->offs);
         return reg;
     }
 
     switch (type.type)
     {
-    case LT_U8:  fprintf(out_f, "\tmovzx\t%s, BYTE [rbp - %d]\n", reginfo->reglist32[reg], sym->offs); break;
-    case LT_I8:  fprintf(out_f, "\tmovsx\t%s, BYTE [rbp - %d]\n", reginfo->reglist32[reg], sym->offs); break;
-    case LT_U16: fprintf(out_f, "\tmovzx\t%s, WORD [rbp - %d]\n", reginfo->reglist32[reg], sym->offs); break;
-    case LT_I16: fprintf(out_f, "\tmovsx\t%s, WORD [rbp - %d]\n", reginfo->reglist32[reg], sym->offs); break;
-    case LT_U32:
-    case LT_I32:
-        fprintf(out_f, "\tmov\t\t%s, DWORD [rbp - %d]\n", reginfo->reglist32[reg], sym->offs);
-        break;
-    case LT_U64:
-    case LT_I64:
-        fprintf(out_f, "\tmov\t\t%s, QWORD [rbp - %d]\n", reginfo->reglist64[reg], sym->offs);
-        break;
+    case LT_U8:  fprintf(out_f, "\tmov\t\t%s, BYTE [bp - %d]\n", reginfo->reglist8[reg], sym->offs); break;
+    case LT_I8:  fprintf(out_f, "\tmov\t\t%s, BYTE [bp - %d]\n", reginfo->reglist8[reg], sym->offs); break;
+    case LT_U16: fprintf(out_f, "\tmov\t\t%s, WORD [bp - %d]\n", reginfo->reglist16[reg], sym->offs); break;
+    case LT_I16: fprintf(out_f, "\tmov\t\t%s, WORD [bp - %d]\n", reginfo->reglist16[reg], sym->offs); break;
     }
 
     return reg;
@@ -421,7 +365,7 @@ int asm16_storelocl(int reg, Sym *sym)
 {
     if (type.addr)
     {
-        fprintf(out_f, "\tmov\t\t[rbp - %d], %s\n", sym->offs, reginfo->reglist64[reg]);
+        fprintf(out_f, "\tmov\t\t[bp - %d], %s\n", sym->offs, reginfo->reglist16[reg]);
         return reg;
     }
 
@@ -429,19 +373,11 @@ int asm16_storelocl(int reg, Sym *sym)
     {
     case LT_U8:
     case LT_I8:
-        fprintf(out_f, "\tmov\t\t[rbp - %d], %s\n", sym->offs, reginfo->reglist8[reg]);
+        fprintf(out_f, "\tmov\t\t[bp - %d], %s\n", sym->offs, reginfo->reglist8[reg]);
         break;
     case LT_U16:
     case LT_I16:
-        fprintf(out_f, "\tmov\t\t[rbp - %d], %s\n", sym->offs, reginfo->reglist16[reg]);
-        break;
-    case LT_U32:
-    case LT_I32:
-        fprintf(out_f, "\tmov\t\t[rbp - %d], %s\n", sym->offs, reginfo->reglist32[reg]);
-        break;
-    case LT_U64:
-    case LT_I64:
-        fprintf(out_f, "\tmov\t\t[rbp - %d], %s\n", sym->offs, reginfo->reglist64[reg]);
+        fprintf(out_f, "\tmov\t\t[bp - %d], %s\n", sym->offs, reginfo->reglist16[reg]);
         break;
     }
 
@@ -454,7 +390,7 @@ int asm16_storederef(int reg0, int reg1, Sym *sym)
 
     if (type.addr)
     {
-        fprintf(out_f, "\tmov\t\t[%s], %s\n", reginfo->reglist[reg1], reginfo->reglist64[reg0]);
+        fprintf(out_f, "\tmov\t\t[%s], %s\n", reginfo->reglist[reg1], reginfo->reglist16[reg0]);
         return reg0;
     }
 
@@ -468,16 +404,34 @@ int asm16_storederef(int reg0, int reg1, Sym *sym)
     case LT_I16:
         fprintf(out_f, "\tmov\t\t[%s], %s\n", reginfo->reglist[reg1], reginfo->reglist16[reg0]);
         break;
-    case LT_U32:
-    case LT_I32:
-        fprintf(out_f, "\tmov\t\t[%s], %s\n", reginfo->reglist[reg1], reginfo->reglist32[reg0]);
-        break;
-    case LT_U64:
-    case LT_I64:
-        fprintf(out_f, "\tmov\t\t[%s], %s\n", reginfo->reglist[reg1], reginfo->reglist64[reg0]);
-        break;
     }
     return reg0;
+}
+
+int asm16_push(int reg)
+{
+    if (type.addr)
+    {
+        pushed += 2;
+        fprintf(out_f, "\tpush\t%s\n", reginfo->reglist[reg]);
+        return reg;
+    }
+
+    switch (type.type)
+    {
+    case LT_U8:
+    case LT_I8:
+        pushed += 2;
+        fprintf(out_f, "\tpush\t%s\n", reginfo->reglist16[reg]);
+        break;
+    case LT_U16:
+    case LT_I16:
+        pushed += 2;
+        fprintf(out_f, "\tpush\t%s\n", reginfo->reglist16[reg]);
+        break;
+    }
+
+    return reg;
 }
 
 void asm16_label(int l)
@@ -489,7 +443,7 @@ int asm16_cmpset(int reg0, int reg1, char *ins)
 {
     if (type.addr)
     {
-        fprintf(out_f, "\tcmp\t\t%s, %s\n", reginfo->reglist64[reg0], reginfo->reglist64[reg1]);
+        fprintf(out_f, "\tcmp\t\t%s, %s\n", reginfo->reglist[reg0], reginfo->reglist[reg1]);
         fprintf(out_f, "\t%s\t%s\n", ins, reginfo->reglist8[reg0]);
         fprintf(out_f, "\tand\t\t%s, 0xff\n", reginfo->reglist[reg0]);
         return reg0;
@@ -504,14 +458,6 @@ int asm16_cmpset(int reg0, int reg1, char *ins)
     case LT_U16:
     case LT_I16:
         fprintf(out_f, "\tcmp\t\t%s, %s\n", reginfo->reglist16[reg0], reginfo->reglist16[reg1]);
-        break;
-    case LT_U32:
-    case LT_I32:
-        fprintf(out_f, "\tcmp\t\t%s, %s\n", reginfo->reglist32[reg0], reginfo->reglist32[reg1]);
-        break;
-    case LT_U64:
-    case LT_I64:
-        fprintf(out_f, "\tcmp\t\t%s, %s\n", reginfo->reglist64[reg0], reginfo->reglist64[reg1]);
         break;
     }
 
@@ -538,7 +484,7 @@ void asm16_jump(int l)
 int asm16_alloc(Sym *sym)
 {
     dl_add(func->stack, &sym);
-    fprintf(out_f, "\tsub\t\trsp, %d\n", type2size(sym->type) * sym->size);
+    fprintf(out_f, "\tsub\t\tsp, %d\n", type2size(sym->type) * sym->size);
     
     top += type2size(sym->type) * sym->size;
     sym->offs = top;
@@ -547,23 +493,50 @@ int asm16_alloc(Sym *sym)
 
 int asm16_func(Node *root)
 {
+    int offs = 2;
+    
     top = 0;
     fprintf(out_f, "%s:\n", func->name);
-    fprintf(out_f, "\tpush\trbp\n");
-    fprintf(out_f, "\tmov\t\trbp, rsp\n");
-    
-    reginfo = &arg64;
+    fprintf(out_f, "\tpush\tbp\n");
+    fprintf(out_f, "\tmov\t\tbp, sp\n");
 
     for (int i = 0; i < func->argc; i++)
     {
         Sym *sym = func->local->get[i];
         type = sym->type;
 
-        asm16_alloc(sym);
-        asm16_storelocl(i, sym);
-    }
 
-    reginfo = &std64;
+        dl_add(func->stack, &sym);
+
+        //asm16_alloc(sym);
+
+        if (type.addr)
+        {
+            offs += 2;
+            //fprintf(out_f, "\tmov\t\t%s, WORD [bp - %d]\n", reginfo->reglist[0], offs);
+            //asm16_storelocl(0, sym);
+            sym->offs = -offs;
+            continue;
+        }
+
+        switch (type.type)
+        {
+        case LT_U8:
+        case LT_I8:
+            offs += 2;
+            sym->offs = -offs;
+            //fprintf(out_f, "\tmov\t\t%s, BYTE [bp - %d]\n", reginfo->reglist8[0], offs);
+            break;
+        case LT_U16:
+        case LT_I16:
+            offs += 2;
+            sym->offs = -offs;
+            //fprintf(out_f, "\tmov\t\t%s, WORD [bp - %d]\n", reginfo->reglist16[0], offs);
+            break;
+        }
+
+        //asm16_storelocl(0, sym);
+    }
 
     gen(root, NULLREG, A_EXEC);
     return NULLREG;
@@ -571,78 +544,11 @@ int asm16_func(Node *root)
 
 int asm16_call(int reg, Node *args)
 {
-    RegInfo *tmp;
-    int align = 32, offs, *regalloc;
-    // 32 bytes ^^ shadow space
-
-    // save the function pointer
-    top += 8;
-    offs = top;
-    fprintf(out_f, "\tpush\t%s\n", reginfo->reglist[reg]);
-    /*for (int i = 0; i < func->stack->used; i++)
-    {
-        Sym *sym = *(Sym **)func->stack->get[i];
-        offs += type2size(sym->type) * sym->size;
-    }*/
-
-    // push used registers
-    for (int i = 0; i < reginfo->nregs; i++)
-    {
-        if (reginfo->regalloc[i] && i != reg)
-        {
-            top += 8;
-            fprintf(out_f, "\tpush\t%s\n", reginfo->reglist[i]);
-        }
-    }
-
-    regalloc = malloc(reginfo->nregs * sizeof(int));
-    memcpy(regalloc, reginfo->regalloc, reginfo->nregs * sizeof(int));
-
-    tmp = reginfo;
-    reginfo = &arg64;
-    rfree_all();
-    reginfo = tmp;
-
-    tmp = reginfo; 
-    rfree_all();
     gen(args, NULLREG, A_ARGS);
-    rfree_all();
-    reginfo = tmp;
-
-    memcpy(reginfo->regalloc, regalloc, reginfo->nregs * sizeof(int));
-    free(regalloc);
-
-    /*for (int i = 0; i < func->stack->used; i++)
-    {
-        Sym *sym = *(Sym**)func->stack->get[i];
-        align += type2size(sym->type) * sym->size;
-    }*/
-    //align = top % 16;
-    align += ALIGN - (top % ALIGN);
-
-    fprintf(out_f, "\txor\t\trax, rax\n");
-    if (align) fprintf(out_f, "\tsub\t\trsp, %d\n", align);
-    fprintf(out_f, "\tcall\t[rbp - %d]\n", offs);
-    if (align) fprintf(out_f, "\tadd\t\trsp, %d\n", align);
-
-
-    rfree(reg);
-    reg = ralloc();
-    fprintf(out_f, "\tmov\t\t%s, rax\n", reginfo->reglist[reg]);
-
-    // pop used registers back
-    for (int i = reginfo->nregs - 1; i >= 0; i--)
-    {
-        if (reginfo->regalloc[i] && i != reg)
-        {
-            top -= 8;
-            fprintf(out_f, "\tpop\t\t%s\n", reginfo->reglist[i]);
-        }
-    }
-
-    top -= 8;
-    fprintf(out_f, "\tadd\t\trsp, 8\n");
-    
+    fprintf(out_f, "\tcall\t%s\n", reginfo->reglist[reg]);
+    fprintf(out_f, "\tadd\t\tsp, %d\n", pushed);
+    fprintf(out_f, "\tmov\t\t%s, ax\n", reginfo->reglist[reg]);
+    pushed = 0;
     return reg;
 }
 
@@ -650,7 +556,7 @@ int asm16_ret(int reg)
 {
     if (reg != NULLREG)
     {
-        fprintf(out_f, "\tmov\t\trax, %s\n", reginfo->reglist[reg]);
+        fprintf(out_f, "\tmov\t\tax, %s\n", reginfo->reglist[reg]);
     }
     fprintf(out_f, "\tleave\n");
     fprintf(out_f, "\tret\n\n");
@@ -829,17 +735,55 @@ int asm16_incdec(int reg, char *ins)
     case LT_I16:
         fprintf(out_f, "\t%s\t\tWORD [%s]\n", ins, reginfo->reglist[reg]);
         break;
-    case LT_U32:
-    case LT_I32:
-        fprintf(out_f, "\t%s\t\tDWORD [%s]\n", ins, reginfo->reglist[reg]);
-        break;
-    case LT_U64:
-    case LT_I64:
-        fprintf(out_f, "\t%s\t\tQWORD [%s]\n", ins, reginfo->reglist[reg]);
-        break;
     }
 
     return reg;
+}
+
+int asm16_asm(char *code)
+{
+    Tok  tok;
+    Sym *sym;
+    char name[128];
+    int c, len = strlen(code);
+
+    for (int i = 0; i < len; i++)
+    {
+        c = code[i];
+
+        /* ABC variable reference in inline assembly */
+        if (c == '(')
+        {
+            i++;
+            c = code[i];
+
+            for (int j = 0; j < len && c != ')'; j++)
+            {
+                name[j] = c;
+                name[j + 1] = 0;
+                c = code[i + j + 1];
+            }
+            
+            tok.val.i = adduniq(name);
+            sym = getsym(&tok);
+
+            switch (sym->class)
+            {
+            case C_GLOB:
+                fprintf(out_f, "%s", sym->name);
+            case C_LOCL:
+                fprintf(out_f, "[bp - %d]", sym->offs);
+            }
+
+            i += strlen(name);
+        }
+        else
+        {
+            fputc(c, out_f);
+        }
+    }
+
+    return NULLREG;
 }
 
 void asm16_preamble(void)

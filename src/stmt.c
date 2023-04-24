@@ -170,6 +170,11 @@ Node *block_stmt(void)
             next(&t);
             next(&t);
             break;
+        case LT_ASM:
+            next(&t);
+            t->token = ST_ASM;
+            right = mkleaf(t, NULL);
+            break;
         case LT_RBRACE:
             next(&t);
             return root;

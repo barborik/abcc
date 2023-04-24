@@ -1,6 +1,6 @@
 #include "includes.h"
 
-int typemod()
+int typemod(void)
 {
     Tok *t;
     int addr = 0;
@@ -140,7 +140,7 @@ void func_decl(int class)
     dlist_t *local;
 
     next(&type);   // data type
-    addr = typemod(type); // pointer modifiers
+    addr = typemod(); // pointer modifiers
 
     next(&ident); // identifier
     name = *(char **)uniq->get[ident->val.i];
@@ -168,7 +168,7 @@ void func_decl(int class)
     sym->root = mknode(ST_FUNC, block_stmt(), NULL, NULL);
 }
 
-void decl()
+void decl(void)
 {
     Tok *t;
     while (next(&t))
@@ -190,7 +190,7 @@ void decl()
         case LT_U32:
         case LT_U64:
             next(&t);
-            typemod(t);
+            typemod();
             if (tokseq(2, LT_IDENT, LT_LPAR))
             {
                 back();
@@ -205,7 +205,7 @@ void decl()
         case LT_EXTERN:
             next(&t);
             next(&t);
-            typemod(t);
+            typemod();
             if (tokseq(2, LT_IDENT, LT_LPAR))
             {
                 back();

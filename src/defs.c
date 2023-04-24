@@ -1,6 +1,7 @@
 #include "includes.h"
 
-RegInfo *reginfo = &std64;
+int mode;
+RegInfo *reginfo;
 
 Sym *sym;
 Sym *func;

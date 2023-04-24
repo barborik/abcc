@@ -81,18 +81,22 @@ int flags(int argc, char **argv)
         }
 
         /* MODE */
-        if (!strncmp(argv[i], "-mode", strlen("-mode")))
+        if (!strncmp(argv[i], "-m", strlen("-m")))
         {
             /* FLAG AND ARGUMENT TOGETHER */
-            if (!strcmp(argv[i] + strlen("-mode"), "16"))
+            if (!strcmp(argv[i] + strlen("-m"), "16"))
             {
-                mode(M_16);
+                bitmode(M_16);
+                reginfo = &std16;
+                i += 1;
                 continue;
             }
 
-            if (!strcmp(argv[i] + strlen("-mode"), "64"))
+            if (!strcmp(argv[i] + strlen("-m"), "64"))
             {
-                mode(M_64);
+                bitmode(M_64);
+                reginfo = &std64;
+                i += 1;
                 continue;
             }
 
@@ -104,13 +108,17 @@ int flags(int argc, char **argv)
             /* FLAG AND ARGUMENT SEPARATE */
             if (!strcmp(argv[i + 1], "16"))
             {
-                mode(M_16);
+                bitmode(M_16);
+                reginfo = &std16;
+                i += 2;
                 continue;
             }
 
             if (!strcmp(argv[i + 1], "64"))
             {
-                mode(M_64);
+                bitmode(M_64);
+                reginfo = &std64;
+                i += 2;
                 continue;
             }
 
@@ -136,7 +144,7 @@ void input(int argc, char **argv)
         exit(-1);
     }
 
-    mode(M_64);
+    bitmode(M_64);
     i = flags(argc, argv);
 
     if (!access(argv[i], F_OK))

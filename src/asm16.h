@@ -14,6 +14,7 @@ int asm16_loadlocl(Sym *sym);
 int asm16_storeglob(int reg, Sym *sym);
 int asm16_storelocl(int reg, Sym *sym);
 int asm16_storederef(int reg0, int reg1, Sym *sym);
+int asm16_push(int reg);
 
 /* ARITHMETIC OPERATIONS */
 int asm16_add(int reg0, int reg1);
@@ -64,6 +65,7 @@ void asm16_jump(int l);
 int asm16_alloc(Sym *sym);
 
 /* OTHER: 2 ELECTRIC BOOGALOO */
+int asm16_asm(char *code);
 int asm16_func(Node *root);
 int asm16_call(int reg, Node *args);
 void asm16_preamble(void);

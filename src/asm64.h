@@ -14,6 +14,7 @@ int asm64_loadlocl(Sym *sym);
 int asm64_storeglob(int reg, Sym *sym);
 int asm64_storelocl(int reg, Sym *sym);
 int asm64_storederef(int reg0, int reg1, Sym *sym);
+int asm64_push(int reg);
 
 /* ARITHMETIC OPERATIONS */
 int asm64_add(int reg0, int reg1);
@@ -64,6 +65,7 @@ void asm64_jump(int l);
 int asm64_alloc(Sym *sym);
 
 /* OTHER: 2 ELECTRIC BOOGALOO */
+int asm64_asm(char *code);
 int asm64_func(Node *root);
 int asm64_call(int reg, Node *args);
 void asm64_preamble(void);
