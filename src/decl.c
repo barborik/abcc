@@ -102,7 +102,7 @@ Node *var_decl(int class, Type type_)
     {
         next(&t); // semicolon
         addglob(type_.type, type_.addr, complex, class, name, size, NULL, NULL, NULL);
-        sym = getsym(ident);
+        // sym = getsym(ident);
         return NULL;
     }
 
@@ -171,6 +171,8 @@ void func_decl(int class)
 void decl(void)
 {
     Tok *t;
+    Type type;
+
     while (next(&t))
     {
         level = 0;
@@ -190,7 +192,8 @@ void decl(void)
         case LT_U32:
         case LT_U64:
             next(&t);
-            typemod();
+            type.type = t->token;
+            type.addr = typemod();
             if (tokseq(2, LT_IDENT, LT_LPAR))
             {
                 back();
@@ -198,14 +201,15 @@ void decl(void)
             }
             else
             {
-                back();
-                var_decl(C_GLOB, (Type){NULL});
+                //back();
+                var_decl(C_GLOB, type);
             }
             break;
         case LT_EXTERN:
             next(&t);
             next(&t);
-            typemod();
+            type.type = t->token;
+            type.addr = typemod();
             if (tokseq(2, LT_IDENT, LT_LPAR))
             {
                 back();
@@ -213,8 +217,8 @@ void decl(void)
             }
             else
             {
-                back();
-                var_decl(C_EXTN, (Type){NULL});
+                //back();
+                var_decl(C_EXTN, type);
             }
             break;
         default:

@@ -40,7 +40,7 @@ int gen(Node *root, int reg, int cmd)
     }
 
     // DEBUG
-    fprintf(out_f, "\t; line %d\n", tok->line);
+    // fprintf(out_f, "\t; line %d\n", tok->line);
 
     asm_stackfree();
 
@@ -58,6 +58,11 @@ int gen(Node *root, int reg, int cmd)
         {
             type.type = LT_I32;
             type.addr = 0;
+        }
+        if (mode == M_16)
+        {
+            type.addr = 0;
+            type.type = LT_I16;
         }
         return asm_load(tok->val.i);
     case ST_CHARLIT: 

@@ -19,8 +19,72 @@ U0 putc(I8 c, U8 x, U8 y)
     return;
 }
 
+I8 getc(U0)
+{
+    I8 c;
+    __asm
+    {
+        mov ah, 0
+        int 0x16
+        mov (c), al
+    }
+    return c;
+}
+
+U0 clear(U0)
+{
+    I16 len = SCREEN_WIDTH * SCREEN_HEIGHT;
+    len = len * 2;
+
+    for (I16 i = 0; i < len; i = i + 2)
+    {
+        __asm
+        {
+            mov ax, 0xB800
+            mov es, ax
+            mov bx, WORD (i)
+            mov [es:bx], BYTE 0
+        }
+    }
+    return;
+}
+
 U0 main(U0)
 {
-    putc('L', 1, 1);
+    I8 c;
+    U8 x = 0, y = 0;
+
+    while (1)
+    {
+        clear();
+        putc('@', x, y);
+
+        c = getc();
+
+        // up
+        if (c == 'w')
+        {
+            y = y - 1;
+        }
+
+        // down
+        if (c == 's')
+        {
+            y = y + 1;
+        }
+
+        // left
+        if (c == 'a')
+        {
+            x = x - 1;
+        }
+
+        // right
+        if (c == 'd')
+        {
+            x = x + 1;
+        }
+    }
+    
     return;
 }

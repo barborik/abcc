@@ -1,10 +1,12 @@
-..\..\bin\abcc.exe -m16 kernel.abc kernel.asm
+..\..\bin\abcc -m16 kernel.abc kernel.asm
 
-del test.asm
+del test.bin
 
-type boot.asm >> test.asm
-type kernel.asm >> test.asm
+nasm -f bin boot.asm -o boot.bin
+nasm -f bin kernel.asm -o kernel.bin
 
-nasm -f bin test.asm -o test.bin
-
+type boot.bin >> test.bin
+type kernel.bin >> test.bin
 type zeros >> test.bin
+
+qemu-system-x86_64 -net none -usb test.bin
