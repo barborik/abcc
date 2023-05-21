@@ -197,6 +197,7 @@ enum
     LT_TILDA,    // ~
     LT_ASSIGN,   // =
     LT_CARET,    // ^
+    LT_SIZEOF,   // sizeof()
     LT_OP_END,
 
     LT_LIT_START,
@@ -235,6 +236,7 @@ enum
     LT_BREAK,    // break
     LT_CONTINUE, // continue
     LT_GOTO,     // goto
+    LT_TDEF,     // typedef
 
     LT_COLON,     // :
     LT_SEMICOLON, // ;
@@ -281,6 +283,7 @@ enum
     ST_ASSIGN, // =
 
     /* UNARY */
+    ST_SIZEOF, // sizeof()
     ST_LOGNOT, // !
     ST_BITNOT, // ~
     ST_NEG,    // -

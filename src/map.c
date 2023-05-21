@@ -87,6 +87,9 @@ int un2stx(Tok *t)
     case LT_IDENT:
         t->token = ST_IDENT;
         break;
+    case LT_SIZEOF:
+        t->token = ST_SIZEOF;
+        break;
     default:
         return 0;
     }

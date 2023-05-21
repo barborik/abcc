@@ -121,6 +121,18 @@ int match(const char *kword, Tok *t)
         return 1;
     }
 
+    if (!strcmp(kword, "typedef"))
+    {
+        t->token = LT_TDEF;
+        return 1;
+    }
+
+    if (!strcmp(kword, "sizeof"))
+    {
+        t->token = LT_SIZEOF;
+        return 1;
+    }
+
     /* INLINE ASSEMBLY */
     if (!strcmp(kword, "__asm"))
     {

@@ -47,7 +47,7 @@ Node *explist(void)
 
 Node *prefix(Node *leaf)
 {
-    Tok  *tok;
+    Tok *tok;
     Node *root, *left;
 
     next(&tok);
@@ -104,7 +104,7 @@ Node *postfix(Node *leaf)
 {
     Type type_;
 
-    Tok  *tok, offs;
+    Tok *tok, offs;
     Node *root, *left, *right, *tmp;
 
     next(&tok);
@@ -122,7 +122,8 @@ Node *postfix(Node *leaf)
         next(&tok);
         break;
     case LT_LSQBR:
-        if (type.addr) type.addr--;
+        if (type.addr)
+            type.addr--;
         offs.token = ST_INTLIT;
         offs.val.i = type2size(type);
 
@@ -173,7 +174,8 @@ Node *postfix(Node *leaf)
 Node *unexp(void)
 {
     char *str;
-    Tok  *tok;
+    Tok *tok;
+    // Type type;
     Node *root;
     Node *leaf = mknode(NULL, NULL, NULL, NULL);
     Node *post = mknode(NULL, NULL, NULL, NULL);
@@ -189,19 +191,39 @@ Node *unexp(void)
 
     switch (tok->token)
     {
+    case ST_SIZEOF:
+        next(&tok); // (
+        next(&tok); // type or expression
+        if (istype(tok->token))
+        {
+            type.type = tok->token;
+        }
+        else
+        {
+            back();
+            binexp(0);
+        }
+        next(&tok); // )
+
+        tok->token = ST_INTLIT;
+        tok->val.i = type2size(type);
+        return mkleaf(tok, 0);
     case ST_STRLIT:
         str = *(char **)uniq->get[tok->val.i];
         sym = findglob(str);
         if (!sym)
         {
-            addglob(LT_I8, 1, 1, C_DATA, str, strlen(str), NULL, NULL, NULL);
+            type.type = LT_I8;
+            type.addr = 1;
+            type.complex = 1;
+            addglob(type, K_VAR, C_DATA, str, strlen(str), NULL, NULL, NULL);
         }
         return mkleaf(tok, 0);
     case LT_LPAR:
         *leaf = *binexp(0);
         next(&tok);
         break;
-    case ST_IDENT: /* FALLTGROUGH */
+    case ST_IDENT:
         sym = getsym(tok);
         type = sym->type;
         if (type.complex)
@@ -209,7 +231,12 @@ Node *unexp(void)
             *leaf = *mknode(ST_ADDR, mkleaf(tok, 0), NULL, NULL);
             break;
         }
+
+        *leaf = *mkleaf(tok, leaf->flags);
+        break;
     default:
+        type.type = LT_I32;
+        type.addr = 0;
         *leaf = *mkleaf(tok, leaf->flags);
         break;
     }
@@ -223,7 +250,7 @@ Node *unexp(void)
 // build a binary expression with pratt parsing
 Node *binexp(int ptp)
 {
-    Tok  *op, *tok;
+    Tok *op, *tok;
     Node *left, *right, *tmp;
 
     // left operand

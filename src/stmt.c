@@ -92,7 +92,7 @@ Node *label_stmt(void)
     next(&t);     // colon
 
     ident->token = ST_IDENT;
-    addlocl(NULL, NULL, NULL, C_LOCL, *(char **)uniq->get[ident->val.i], NULL);
+    addlocl((Type){NULL}, K_LABL, C_LOCL, *(char **)uniq->get[ident->val.i], NULL);
     return mknode(ST_LABEL, mkleaf(ident, 0), NULL, NULL);
 }
 
@@ -111,6 +111,7 @@ Node *goto_stmt(void)
 Node *block_stmt(void)
 {
     Tok *t;
+    Sym *sym;
     Node *right, *root = NULL;
 
     level++;
@@ -133,17 +134,6 @@ Node *block_stmt(void)
         case LT_U32:
         case LT_U64:
             right = var_decl(C_LOCL, (Type){NULL});
-            break;
-        case LT_IDENT:
-            if (tokseq(2, LT_IDENT, LT_COLON))
-            {
-                right = label_stmt();
-            }
-            else
-            {
-                right = binexp(0);
-                next(&t);
-            }
             break;
         case LT_GOTO:
             right = goto_stmt();
@@ -178,6 +168,20 @@ Node *block_stmt(void)
         case LT_RBRACE:
             next(&t);
             return root;
+        case LT_IDENT:
+            sym = getsym(t);
+
+            if (sym->kind == K_LABL)
+            {
+                right = label_stmt();
+                break;
+            }
+
+            if (sym->kind == K_TDEF)
+            {
+                t->token = sym->type.type;
+                continue;
+            }
         default:
             right = binexp(0);
             next(&t);

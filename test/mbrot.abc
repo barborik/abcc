@@ -1,0 +1,141 @@
+#include "stdlib.abh"
+
+#define SCREEN_WIDTH 80
+#define SCREEN_HEIGHT 25
+
+#define MAX_ITERATIONS 20
+#define ESCAPE_RADIUS 2
+
+#define FRACTION_BITS 8
+#define FRACTION_SIZE (1 << FRACTION_BITS)
+
+#define TO_FIXED(x)     (x * FRACTION_SIZE)
+#define FROM_FIXED(x)   (x / FRACTION_SIZE)
+#define ADD_FIXED(x, y) (x + y)
+#define SUB_FIXED(x, y) (x - y)
+#define MUL_FIXED(x, y) ((x * y) >> FRACTION_BITS)
+#define DIV_FIXED(x, y) ((x << FRACTION_BITS) / y)
+
+I64 mbrot(I64 x, I64 y, I64 zoom, I64 offs_x, I64 offs_y)
+{
+    I64 i = 0;
+    I64 zx = 0, zy = 0;
+    I64 new_zx, new_zy;
+
+    I64 cx = TO_FIXED(SCREEN_WIDTH) >> 1;
+    I64 cy = TO_FIXED(SCREEN_HEIGHT) >> 1;
+
+    // printf("AHOJ %d\n", cx);
+
+    cx = SUB_FIXED(TO_FIXED(x), cx);
+    cy = SUB_FIXED(TO_FIXED(y), cy);
+
+    // printf("AHOJ2 %d\n", cx);
+
+    //cx = DIV_FIXED(cx, zoom);
+    //cy = DIV_FIXED(cy, zoom);
+
+    cx = cx << FRACTION_BITS;
+    cy = cy << FRACTION_BITS;
+
+    cx = cx / zoom;
+    cy = cy / zoom;
+
+    //cx = cx << FRACTION_BITS;
+    //cy = cy << FRACTION_BITS;
+
+    // printf("AHOJ3 %d\n", cx);
+
+    //cx = cx / zoom;
+    //cy = cx / zoom;
+
+    //if (cx)
+    //{
+    // printf("AHOJ4 %d\n", cx);
+    //}
+
+    I64 left, right, cmp, tmp, cmp2;
+
+    left = zx * zx;
+    left = left >> FRACTION_BITS;
+    
+    tmp = zy * zy;
+    tmp = tmp >> FRACTION_BITS;
+    left = left + tmp;
+
+    right = ESCAPE_RADIUS * ESCAPE_RADIUS;
+    right = TO_FIXED(right);
+
+    cmp =  left < right;
+    cmp2 = i < MAX_ITERATIONS;
+
+    for (i = 0; cmp && cmp2; 1)
+    {
+        new_zx = ADD_FIXED(SUB_FIXED(MUL_FIXED(zx, zx), MUL_FIXED(zy, zy)), cx);
+        new_zy = ADD_FIXED(MUL_FIXED(TO_FIXED(2), MUL_FIXED(zx, zy)), cy);
+
+        zx = new_zx;
+        zy = new_zy;
+
+        i++;
+
+        left = zx * zx;
+        left = left >> FRACTION_BITS;
+        
+        tmp = zy * zy;
+        tmp = tmp >> FRACTION_BITS;
+        left = left + tmp;
+
+        right = ESCAPE_RADIUS * ESCAPE_RADIUS;
+        right = TO_FIXED(right);
+
+        cmp =  left < right;
+        cmp2 = i < MAX_ITERATIONS;
+    }
+
+    return i;
+}
+
+I64 main(U0)
+{
+    I8 c;
+    I64 x, y, i;
+    I64 zoom = TO_FIXED(SCREEN_WIDTH);
+
+    while (1)
+    {
+        printf("%lld\n", zoom);
+        for (y = 0; y < SCREEN_HEIGHT; y++)
+        {
+            for (x = 0; x < SCREEN_WIDTH; x++)
+            {
+                i = mbrot(x, y, zoom, 0, 0);
+
+                if (i == MAX_ITERATIONS)
+                {
+                    putchar('#');
+                }
+                else
+                {
+                    putchar('.');
+                }
+            }
+            putchar('\n');
+        }
+
+        c = getchar();
+
+        if (c == 'n')
+        {
+            zoom = zoom + 500;
+        }
+
+        if (c == 'm')
+        {
+            zoom = zoom - 500;
+        }
+    }
+
+
+    return 0;
+}

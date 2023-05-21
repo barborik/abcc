@@ -26,17 +26,16 @@ int adduniq(char *str)
     return uniq->used - 1;
 }
 
-Sym *addlocl(int type, int addr, int complex, int class, char *name, int size)
+Sym *addlocl(Type type, int kind, int class, char *name, int size)
 {
     Sym sym;
-    sym.type.type = type;
-    sym.type.addr = addr;
+    sym.type = type;
+    sym.kind = kind;
     sym.class = class;
     sym.name = name;
     sym.size = size;
     sym.level = level;
     sym.offs = 0;
-    sym.type.complex = complex;
 
     dl_add(func->local, &sym);
     return func->local->get[func->local->used - 1];
@@ -78,7 +77,7 @@ Sym *findglob(char *name)
 }
 
 // adds a global symbol to the table and returns its index
-Sym *addglob(int type, int addr, int complex, int class, char *name, int size, int argc, Node *root, dlist_t *local)
+Sym *addglob(Type type, int kind, int class, char *name, int size, int argc, Node *root, dlist_t *local)
 {
     if (!glob)
     {
@@ -86,21 +85,25 @@ Sym *addglob(int type, int addr, int complex, int class, char *name, int size, i
         dl_init(glob, sizeof(Sym));
     }
 
-    dlist_t *stack = malloc(sizeof(dlist_t));
-    dl_init(stack, sizeof(Sym *));
-
     Sym sym;
-    sym.type.type = type;
-    sym.type.addr = addr;
+
+    sym.type = type;
+    sym.kind = kind;
     sym.class = class;
     sym.name = name;
     sym.argc = argc;
     sym.local = local;
     sym.root = root;
     sym.size = size;
-    sym.stack = stack;
     sym.level = 1;
-    sym.type.complex = complex;
+
+    if (kind == K_FUNC)
+    {
+        dlist_t *stack = malloc(sizeof(dlist_t));
+        dl_init(stack, sizeof(Sym *));
+
+        sym.stack = stack;
+    }
 
     dl_add(glob, &sym);
     return glob->get[glob->used - 1];
@@ -112,7 +115,8 @@ Sym *getsym(Tok *t)
     char **name = *(char **)uniq->get[t->val.i];
 
     sym = findlocl(name);
-    if (!sym) sym = findglob(name);
+    if (!sym)
+        sym = findglob(name);
     return sym;
 }
 

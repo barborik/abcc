@@ -5,19 +5,21 @@ TARGET = test
 
 ifeq ($(OS),Windows_NT)
 RM = del
+AFLAGS = -f win64
 else
 RM = rm
+AFLAGS = -f elf64
 endif
 
-test.exe: test.o
-	gcc $^ -o $@ -fPIE -no-pie
+$(TARGET): test.o
+	gcc $^ -o $@ -no-pie -lGL -lglfw
 	$(RM) $^
 	@echo === RUNNING ===
-	@$@
+	@./$@ 1
 
 
 test.o: test.asm
-	nasm -f win64 $^ -o $@
+	nasm $(AFLAGS) $^ -o $@
 	$(RM) $^
 
 test.asm: $(SRC)

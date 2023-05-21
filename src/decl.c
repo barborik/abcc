@@ -76,7 +76,7 @@ Node *var_decl(int class, Type type_)
 
     if (!type_.type)
     {
-        next(&type); // data type
+        next(&type);      // data type
         addr = typemod(); // pointer modifiers
 
         type_.type = type->token;
@@ -97,16 +97,18 @@ Node *var_decl(int class, Type type_)
         complex = 1;
     }
 
+    type_.complex = complex;
+
     // global variable
     if (class == C_GLOB || class == C_EXTN)
     {
         next(&t); // semicolon
-        addglob(type_.type, type_.addr, complex, class, name, size, NULL, NULL, NULL);
+        addglob(type_, K_VAR, class, name, size, NULL, NULL, NULL);
         // sym = getsym(ident);
         return NULL;
     }
 
-    sym = addlocl(type_.type, type_.addr, complex, class, name, size);
+    sym = addlocl(type_, K_VAR, class, name, size);
 
     root = mknode(ST_ALLOC, mkleaf(ident, 0), NULL, NULL);
 
@@ -130,7 +132,7 @@ Node *var_decl(int class, Type type_)
     return root;
 }
 
-void func_decl(int class)
+void func_decl(int class, Type type_)
 {
     char *name;
     int argc, addr;
@@ -139,8 +141,8 @@ void func_decl(int class)
     Sym *sym;
     dlist_t *local;
 
-    next(&type);   // data type
-    addr = typemod(); // pointer modifiers
+    // next(&type);      // data type
+    // addr = typemod(); // pointer modifiers
 
     next(&ident); // identifier
     name = *(char **)uniq->get[ident->val.i];
@@ -149,11 +151,15 @@ void func_decl(int class)
     dl_init(local, sizeof(Sym));
     argc = args(local); // parse arguments
 
+    // type_.type = type->token;
+    // type_.addr = addr;
+    type_.complex = 0;
+
     // declaration
     if (tokseq(1, LT_SEMICOLON))
     {
         next(&t);
-        addglob(type->token, addr, 0, class, name, NULL, argc, NULL, local);
+        addglob(type_, K_FUNC, class, name, NULL, argc, NULL, local);
         return;
     }
 
@@ -161,11 +167,28 @@ void func_decl(int class)
     sym = findglob(name);
     if (!sym)
     {
-        sym = addglob(type->token, addr, 0, class, name, NULL, argc, NULL, local);
+        sym = addglob(type_, K_FUNC, class, name, NULL, argc, NULL, local);
     }
 
     func = sym;
     sym->root = mknode(ST_FUNC, block_stmt(), NULL, NULL);
+}
+
+void tdef(void)
+{
+    Tok *tok;
+    Type type;
+
+    next(&tok); // typedef
+    next(&tok); // type
+    type.type = tok->token;
+    type.addr = typemod();
+    type.complex = 0;
+    next(&tok); // ident
+
+    addglob(type, K_TDEF, C_GLOB, *(char **)uniq->get[tok->val.i], NULL, NULL, NULL, NULL);
+
+    next(&tok); // semi
 }
 
 void decl(void)
@@ -196,12 +219,12 @@ void decl(void)
             type.addr = typemod();
             if (tokseq(2, LT_IDENT, LT_LPAR))
             {
-                back();
-                func_decl(C_GLOB);
+                // back();
+                func_decl(C_GLOB, type);
             }
             else
             {
-                //back();
+                // back();
                 var_decl(C_GLOB, type);
             }
             break;
@@ -212,14 +235,17 @@ void decl(void)
             type.addr = typemod();
             if (tokseq(2, LT_IDENT, LT_LPAR))
             {
-                back();
-                func_decl(C_EXTN);
+                // back();
+                func_decl(C_EXTN, type);
             }
             else
             {
-                //back();
+                // back();
                 var_decl(C_EXTN, type);
             }
+            break;
+        case LT_TDEF:
+            tdef();
             break;
         default:
             printf("DECL ERROR: line %d token %d\n", t->line, t->token);

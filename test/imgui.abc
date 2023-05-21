@@ -65,22 +65,22 @@ extern U0 glClear(U32 bitfieldmask);
 
 I32 main(U0)
 {
-    printf("Hello world 123 from ABC :-)");
-
     U0* window;
 
-    if(glfwInit() != 1) //FIX: should be !glfwInit()
+    if(glfwInit() == 0) //FIX: should be !glfwInit()
     {
         return 1; //FIX: should be -1
     }
 
     window = glfwCreateWindow(640, 480, "Hello World", 0, 0); //FIX: broken
 
-    if(window != 1) //FIX: should be !window
+    if(window == 0) //FIX: should be !window
     {
         glfwTerminate();
-        return 1; //FIX: should be -1
+        return 2; //FIX: should be -1
     }
+
+    printf("Hello world 123 from ABC :-)\n");
 
     glfwMakeContextCurrent(window);
 
@@ -92,5 +92,5 @@ I32 main(U0)
     }
 
     glfwTerminate();
-    return 0;
+    return 3;
 }

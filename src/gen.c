@@ -40,7 +40,7 @@ int gen(Node *root, int reg, int cmd)
     }
 
     // DEBUG
-    // fprintf(out_f, "\t; line %d\n", tok->line);
+    fprintf(out_f, "\t; line %d\n", tok->line);
 
     asm_stackfree();
 

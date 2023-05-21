@@ -12,6 +12,14 @@ enum
     C_DATA, // data section symbol (char and string literals)
 };
 
+enum
+{
+    K_VAR,
+    K_FUNC,
+    K_LABL,
+    K_TDEF,
+};
+
 struct type
 {
     int type;
@@ -23,7 +31,8 @@ struct sym
 {
     Type type;  // type of symbol
     int size;   // number of elements
-    int class;  // one of the values from the enum above
+    int kind;   // one of the values from the enum above K_{...}
+    int class;  // one of the values from the enum above C_{...}
     char *name; // symbol name
 
     /* SHARED */
@@ -41,8 +50,8 @@ struct sym
 
 int adduniq(char *str);
 
-Sym *addglob(int type, int addr, int complex, int class, char *name, int size, int argc, Node *root, dlist_t *local);
-Sym *addlocl(int type, int addr, int complex, int class, char *name, int size);
+Sym *addglob(Type type, int kind, int class, char *name, int size, int argc, Node *root, dlist_t *local);
+Sym *addlocl(Type type, int kind, int class, char *name, int size);
 
 Sym *findglob(char *name);
 Sym *findlocl(char *name);

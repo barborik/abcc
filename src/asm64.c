@@ -88,13 +88,19 @@ int asm64_mul(int reg0, int reg1)
 int asm64_div(int reg0, int reg1)
 {
     fprintf(out_f, "\tpush\trax\n");
+    fprintf(out_f, "\tpush\trbx\n");
     fprintf(out_f, "\tmov\t\trax, %s\n", reginfo->reglist[reg0]);
+    fprintf(out_f, "\tmov\t\trbx, %s\n", reginfo->reglist[reg1]);
     fprintf(out_f, "\tcqo\n");
 
     if (type.addr)
     {
-        fprintf(out_f, "\tdiv\t%s\n", reginfo->reglist[reg1]);
-        fprintf(out_f, "\tmov\t\t%s, rax\n", reginfo->reglist[reg0]);
+        fprintf(out_f, "\tdiv\t\trbx\n");
+
+        fprintf(out_f, "\tmov\t\t%s, rax\n", reginfo->reglist[reg0]); 
+        fprintf(out_f, "\tpop\t\trbx\n");
+        fprintf(out_f, "\tpop\t\trax\n");
+
         rfree(reg1);
         return reg0;
     }
@@ -105,18 +111,47 @@ int asm64_div(int reg0, int reg1)
     case LT_I16:
     case LT_I32:
     case LT_I64:
-        fprintf(out_f, "\tidiv\t%s\n", reginfo->reglist[reg1]);
+        fprintf(out_f, "\tidiv\trbx\n");
         break;
     case LT_U8:
     case LT_U16:
     case LT_U32:
     case LT_U64:
-        fprintf(out_f, "\tdiv\t%s\n", reginfo->reglist[reg1]);
+        fprintf(out_f, "\tdiv\t\trbx\n");
         break;
     }
-    
+
     fprintf(out_f, "\tmov\t\t%s, rax\n", reginfo->reglist[reg0]);
-    fprintf(out_f, "\tpop\t\trax\n");
+
+    if (reg0 == 0)
+    {
+        fprintf(out_f, "\tadd\t\trsp, 8\n");
+    }
+    else
+    {
+        fprintf(out_f, "\tpop\t\trax\n");
+    }
+
+    if (reg0 == 1)
+    {
+        fprintf(out_f, "\tadd\t\trsp, 8\n");
+    }
+    else
+    {
+        fprintf(out_f, "\tadd\t\trsp, 8\n");
+    }
+
+    /*if (reg0 == 0 || reg0 == 1)
+    {
+        fprintf(out_f, "\tadd\t\tsp, 8\n");
+        fprintf(out_f, "\tpop\t\trax\n");
+    }
+    else
+    {
+        fprintf(out_f, "\tpop\t\trbx\n");
+        fprintf(out_f, "\tpop\t\trax\n");
+    }*/
+
     rfree(reg1);
     return reg0;
 }
@@ -950,7 +985,7 @@ void asm64_postamble(void)
     for (size_t i = 0; glob && i < glob->used; i++)
     {
         Sym *sym = glob->get[i];
-        if (sym->class == C_GLOB && !sym->local)
+        if (sym->class == C_GLOB && sym->kind == K_VAR)
         {
             fprintf(out_f, "%s:\t\t\t\tresb %d\n", sym->name, type2size(sym->type) * sym->size);
         }
