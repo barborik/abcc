@@ -1,0 +1,7 @@
+@printf(fmt: I8*, ...): U0;
+
+main(U0): I32
+{
+    printf("NEW SYNTAX\n");
+    return $0;
+}

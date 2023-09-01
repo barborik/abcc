@@ -1,4 +1,5 @@
 #define NULL 0
+#define EOF  -1
 
 /* FIXED 32 */
 #define FRACTION_BITS_32 10
@@ -26,13 +27,24 @@
 #define MUL_FIXED_64(x, y) ((x * y) >> FRACTION_BITS_64)
 #define DIV_FIXED_64(x, y) ((x << FRACTION_BITS_64) / y)
 
+#define SEEK_SET 0
+#define SEEK_CUR 1
+#define SEEK_END 2
+
 typedef I32 F32;
 typedef I64 F64;
+typedef I32  FILE;
+
+//extern FILE* stdin;
+//extern FILE* stdout;
+
+extern FILE* fopen(I8* fname, I8* mode);
+extern I32 fgetc(FILE* file);
+extern I32 fseek(FILE* file, I64 offset, I32 origin);
+extern I32 fflush(FILE* file);
 
 extern U0 printf(I8* fmt, ...);
 extern U0 putchar(I8 c);
 extern I32 atoi(I8* str);
-
 extern I32 strcpy(I8* dst, I8* src);
-
 extern I8 getchar(U0);

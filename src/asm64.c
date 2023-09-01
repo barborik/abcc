@@ -30,7 +30,7 @@ int asm64_load(int val)
 int asm64_loadstr(int id)
 {
     int reg = ralloc();
-    fprintf(out_f, "\tmov\t\t%s, S%d\n", reginfo->reglist[reg], id);
+    fprintf(out_f, "\tlea\t\t%s, S%d\n", reginfo->reglist[reg], id);
     return reg;
 }
 

@@ -189,7 +189,8 @@ int parse2i(int sign)
     return (sign) ? (v) : (-v);
 }
 
-void parse2n(Tok *t)
+// parses a numeric literal
+void numeric(Tok *t)
 {
     char num[64];
     int c = fgetc(src_f), i = 0, isfloat = 0;
@@ -275,14 +276,14 @@ int scan(Tok *t)
 
     /* OPERATORS */
     case '+':
-        c = fgetc(src_f);
+        /*c = fgetc(src_f);
         if (isdigit(c))
         {
             t->token = LT_INTLIT;
             t->val.i = parse2i(S_PLUS);
             break;
         }
-        fseek(src_f, -1, SEEK_CUR);
+        fseek(src_f, -1, SEEK_CUR);*/
 
         if (fgetc(src_f) == '+')
         {
@@ -294,14 +295,14 @@ int scan(Tok *t)
         t->token = LT_PLUS;
         break;
     case '-':
-        c = fgetc(src_f);
+        /*c = fgetc(src_f);
         if (isdigit(c))
         {
             t->token = LT_INTLIT;
             t->val.i = parse2i(S_MINUS);
             break;
         }
-        fseek(src_f, -1, SEEK_CUR);
+        fseek(src_f, -1, SEEK_CUR);*/
 
         if (fgetc(src_f) == '-')
         {
@@ -441,14 +442,10 @@ int scan(Tok *t)
         t->token = LT_STRLIT;
         t->val.i = parse2str();
         break;
+    case '$':
+        numeric(t);
+        break;
     default:
-        if (isdigit(c))
-        {
-            fseek(src_f, -1, SEEK_CUR);
-            parse2n(t);
-            break;
-        }
-
         keyword(t);
         break;
     }

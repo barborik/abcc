@@ -2,11 +2,11 @@
 
 U0 fib(I32 j)
 {
-    I32 a = 0;
-    I32 b = 1;
-    I32 c = 0;
+    I32 a = $0;
+    I32 b = $1;
+    I32 c = $0;
 
-    for (I32 i = 0; i < j; i++)
+    for (I32 i = $0; i < j; i++)
     {
         printf("%d\n", a);
 
@@ -18,8 +18,16 @@ U0 fib(I32 j)
     return;
 }
 
+I8 2fart(U0)
+{
+    @extern
+    abc: I32[2];
+
+    return $0;
+}
+
 I32 main(U0)
 {
-    fib(10);
-    return 0;
+    fib($10);
+    return $0;
 }
