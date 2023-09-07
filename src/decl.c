@@ -1,22 +1,83 @@
 #include "includes.h"
 
-int typemod(void)
+void typemod(Type *type)
 {
     Tok *t;
-    int addr = 0;
 
-    while (tokseq(1, LT_ASTERISK))
+    type->size = 1;
+    next(&t);
+    switch (t->token)
     {
-        addr++;
-        next(&t);
+    case LT_ASTERISK:
+        while (tokseq(1, LT_ASTERISK))
+        {
+            type->addr++;
+            next(NULL);
+        }
+        break;
+    case LT_LSQBR:
+        type->size = interpret(binexp(0));
+        next(NULL);
+        break;
+    default:
+        back();
     }
-
-    return addr;
 }
 
 int args(dlist_t *local)
 {
-    int argc = 0, addr;
+    Tok *t;
+    char *name;
+    int argc = 0;
+
+    next(NULL); // (
+
+    while (1)
+    {
+        if (tokseq(3, LT_DOT, LT_DOT, LT_DOT))
+        {
+            next(NULL); // .
+            next(NULL); // .
+            next(NULL); // .
+            argc = -1;
+            break;
+        }
+
+        next(&t);
+
+        if (t->token == LT_U0 || t->token == LT_I0)
+        {
+            break;
+        }
+
+        name = *(char **)uniq->get[t->val.i];
+
+        next(NULL);
+        next(&t);
+        type.type = t->token;
+        typemod(&type);
+
+        Sym sym;
+        sym.type = type;
+        sym.class = C_LOCL;
+        sym.name = name;
+        sym.level = 1;
+        sym.offs = 0;
+
+        dl_add(local, &sym);
+        argc++;
+
+        if (tokseq(1, LT_RPAR))
+        {
+            break;
+        }
+        next(&t); // ,
+    }
+
+    next(NULL); // )
+    return argc;
+
+    /*int argc = 0, addr;
     Tok *type, *ident, *t;
 
     next(&t); // (
@@ -63,12 +124,58 @@ int args(dlist_t *local)
     }
 
     next(&t); // )
-    return argc;
+    return argc;*/
 }
 
-Node *var_decl(int class, Type type_)
+Node *var_decl(int class)
 {
     char *name;
+    Tok *ident, *t;
+    Node *root = NULL;
+
+    // identifier
+    next(&ident);
+    ident->token = ST_IDENT;
+    name = *(char **)uniq->get[ident->val.i];
+
+    // , or :
+    next(&t);
+    if (t->token == LT_COMMA)
+    {
+        root = var_decl(class);
+
+        if (class == C_GLOB || class == C_EXTN)
+        {
+            addglob(type, K_VAR, class, name, NULL, NULL, NULL);
+            return NULL;
+        }
+
+        addlocl(type, K_VAR, class, name);
+        root = mknode(ST_JOIN, root, NULL, mknode(ST_ALLOC, mkleaf(ident, 0), NULL, NULL));
+
+        return root;
+    }
+
+    // type
+    next(&t);
+    type.type = t->token;
+    typemod(&type);
+
+    // ;
+    next(NULL);
+
+    if (class == C_GLOB || class == C_EXTN)
+    {
+        addglob(type, K_VAR, class, name, NULL, NULL, NULL);
+        return NULL;
+    }
+
+    addlocl(type, K_VAR, class, name);
+    root = mknode(ST_ALLOC, mkleaf(ident, 0), NULL, NULL);
+
+    return root;
+
+    /*char *name;
     int size = 1, complex = 0, addr;
     Sym *sym;
     Tok *type, *ident, *t;
@@ -129,12 +236,55 @@ Node *var_decl(int class, Type type_)
         break;
     }
 
-    return root;
+    return root;*/
 }
 
-void func_decl(int class, Type type_)
+void func_decl(int class)
 {
+    Sym *sym;
     char *name;
+    Tok *ident, *t;
+    Node *root = NULL;
+
+    int argc;
+    dlist_t *local;
+
+    // identifier
+    next(&ident);
+    name = *(char **)uniq->get[ident->val.i];
+
+    // arguments
+    local = malloc(sizeof(dlist_t));
+    dl_init(local, sizeof(Sym));
+    argc = args(local);
+
+    // :
+    next(NULL);
+
+    // type
+    next(&t);
+    type.type = t->token;
+    typemod(&type);
+
+    // declaration
+    if (tokseq(1, LT_SEMICOLON))
+    {
+        next(NULL);
+        addglob(type, K_FUNC, class, name, argc, NULL, local);
+        return;
+    }
+
+    // definition
+    sym = findglob(name);
+    if (!sym)
+    {
+        sym = addglob(type, K_FUNC, class, name, argc, NULL, local);
+    }
+
+    func = sym;
+    sym->root = mknode(ST_FUNC, block_stmt(), NULL, NULL);
+
+    /*char *name;
     int argc, addr;
     Tok *type, *ident, *t;
     Node *root;
@@ -171,12 +321,42 @@ void func_decl(int class, Type type_)
     }
 
     func = sym;
-    sym->root = mknode(ST_FUNC, block_stmt(), NULL, NULL);
+    sym->root = mknode(ST_FUNC, block_stmt(), NULL, NULL);*/
+}
+
+void enum_(void)
+{
+    Tok *t;
+    Sym *s;
+    int i = 1;
+    char *name;
+
+    next(NULL); // enum
+    next(NULL); // {
+
+    while (next(&t))
+    {
+        if (t->token == LT_RBRACE)
+        {
+            break;
+        }
+
+        if (tokseq(1, LT_COMMA))
+        {
+            next(NULL);
+        }
+
+        name = *(char **)uniq->get[t->val.i];
+        s = addglob(type, K_ENUM, C_GLOB, name, NULL, NULL, NULL);
+        s->eval = i;
+
+        i++;
+    }
 }
 
 void tdef(void)
 {
-    Tok *tok;
+    /*Tok *tok;
     Type type;
 
     next(&tok); // typedef
@@ -188,7 +368,7 @@ void tdef(void)
 
     addglob(type, K_TDEF, C_GLOB, *(char **)uniq->get[tok->val.i], NULL, NULL, NULL, NULL);
 
-    next(&tok); // semi
+    next(&tok); // semi*/
 }
 
 void decl(void)
@@ -214,7 +394,7 @@ void decl(void)
         case LT_U16:
         case LT_U32:
         case LT_U64:
-            next(&t);
+            /*next(&t);
             type.type = t->token;
             type.addr = typemod();
             if (tokseq(2, LT_IDENT, LT_LPAR))
@@ -226,26 +406,42 @@ void decl(void)
             {
                 // back();
                 var_decl(C_GLOB, type);
+            }*/
+            break;
+        case LT_IDENT:
+            // back();
+            if (tokseq(2, LT_IDENT, LT_LPAR))
+            {
+                func_decl(C_GLOB);
+            }
+            else
+            {
+                var_decl(C_GLOB);
             }
             break;
-        case LT_EXTERN:
-            next(&t);
-            next(&t);
-            type.type = t->token;
-            type.addr = typemod();
+        // case LT_EXTERN:
+        case LT_ATMARK:
+            // next(&t);
+            // next(&t);
+            // type.type = t->token;
+            // type.addr = typemod();
+            next(NULL);
             if (tokseq(2, LT_IDENT, LT_LPAR))
             {
                 // back();
-                func_decl(C_EXTN, type);
+                func_decl(C_EXTN);
             }
             else
             {
                 // back();
-                var_decl(C_EXTN, type);
+                var_decl(C_EXTN);
             }
             break;
         case LT_TDEF:
             tdef();
+            break;
+        case LT_ENUM:
+            enum_();
             break;
         default:
             printf("DECL ERROR: line %d token %d\n", t->line, t->token);

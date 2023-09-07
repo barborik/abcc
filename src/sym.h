@@ -18,19 +18,19 @@ enum
     K_FUNC,
     K_LABL,
     K_TDEF,
+    K_ENUM,
 };
 
 struct type
 {
     int type;
     int addr;
-    int complex;
+    int size;
 };
 
 struct sym
 {
     Type type;  // type of symbol
-    int size;   // number of elements
     int kind;   // one of the values from the enum above K_{...}
     int class;  // one of the values from the enum above C_{...}
     char *name; // symbol name
@@ -46,12 +46,15 @@ struct sym
     Node *root;     // root of the function ast
     dlist_t *local; // local symbols of a function including arguments
     dlist_t *stack; // simulates a function stack, adding and removing elements while generating
+
+    /* ENUM */
+    int eval;
 };
 
 int adduniq(char *str);
 
-Sym *addglob(Type type, int kind, int class, char *name, int size, int argc, Node *root, dlist_t *local);
-Sym *addlocl(Type type, int kind, int class, char *name, int size);
+Sym *addglob(Type type, int kind, int class, char *name, int argc, Node *root, dlist_t *local);
+Sym *addlocl(Type type, int kind, int class, char *name);
 
 Sym *findglob(char *name);
 Sym *findlocl(char *name);

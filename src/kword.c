@@ -127,6 +127,12 @@ int match(const char *kword, Tok *t)
         return 1;
     }
 
+    if (!strcmp(kword, "enum"))
+    {
+        t->token = LT_ENUM;
+        return 1;
+    }
+
     if (!strcmp(kword, "sizeof"))
     {
         t->token = LT_SIZEOF;

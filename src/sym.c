@@ -26,14 +26,13 @@ int adduniq(char *str)
     return uniq->used - 1;
 }
 
-Sym *addlocl(Type type, int kind, int class, char *name, int size)
+Sym *addlocl(Type type, int kind, int class, char *name)
 {
     Sym sym;
     sym.type = type;
     sym.kind = kind;
     sym.class = class;
     sym.name = name;
-    sym.size = size;
     sym.level = level;
     sym.offs = 0;
 
@@ -77,7 +76,7 @@ Sym *findglob(char *name)
 }
 
 // adds a global symbol to the table and returns its index
-Sym *addglob(Type type, int kind, int class, char *name, int size, int argc, Node *root, dlist_t *local)
+Sym *addglob(Type type, int kind, int class, char *name, int argc, Node *root, dlist_t *local)
 {
     if (!glob)
     {
@@ -94,7 +93,6 @@ Sym *addglob(Type type, int kind, int class, char *name, int size, int argc, Nod
     sym.argc = argc;
     sym.local = local;
     sym.root = root;
-    sym.size = size;
     sym.level = 1;
 
     if (kind == K_FUNC)

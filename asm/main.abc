@@ -1,0 +1,19 @@
+#include "stdlib.abh"
+
+enum
+{
+    T_INS,
+    T_INTLIT,
+}
+
+enum
+{
+    I_MOV,
+    I_ADD,
+}
+
+main(U0): I32
+{
+    printf("Hello, World! %d\n", T_INS);
+    return $0;
+}

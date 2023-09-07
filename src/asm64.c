@@ -8,7 +8,7 @@ void asm64_stackfree(void)
         Sym *sym = *(Sym **)func->stack->get[i];
         if (sym->level > func->level)
         {
-            add += type2size(sym->type) * sym->size;
+            add += type2size(sym->type) * sym->type.size;
             dl_rem(func->stack, i);
             i--;
         }
@@ -80,7 +80,7 @@ int asm64_mul(int reg0, int reg1)
         fprintf(out_f, "\tpop\t\trax\n");
         break;
     }
-    
+
     rfree(reg1);
     return reg0;
 }
@@ -97,7 +97,7 @@ int asm64_div(int reg0, int reg1)
     {
         fprintf(out_f, "\tdiv\t\trbx\n");
 
-        fprintf(out_f, "\tmov\t\t%s, rax\n", reginfo->reglist[reg0]); 
+        fprintf(out_f, "\tmov\t\t%s, rax\n", reginfo->reglist[reg0]);
         fprintf(out_f, "\tpop\t\trbx\n");
         fprintf(out_f, "\tpop\t\trax\n");
 
@@ -281,7 +281,7 @@ int asm64_logand(int reg0, int reg1)
     fprintf(out_f, "\tmov\t\t%s, %s\n", reginfo->reglist[reg1], reginfo->reglist[tmp]);
 
     rfree(tmp);
-    
+
     return asm64_bitand(reg0, reg1);
 }
 
@@ -375,10 +375,18 @@ int asm64_loadglob(Sym *sym)
 
     switch (type.type)
     {
-    case LT_U8:  fprintf(out_f, "\tmovzx\t%s, BYTE [%s]\n", reginfo->reglist32[reg], sym->name); break;
-    case LT_I8:  fprintf(out_f, "\tmovsx\t%s, BYTE [%s]\n", reginfo->reglist32[reg], sym->name); break;
-    case LT_U16: fprintf(out_f, "\tmovzx\t%s, WORD [%s]\n", reginfo->reglist32[reg], sym->name); break;
-    case LT_I16: fprintf(out_f, "\tmovsx\t%s, WORD [%s]\n", reginfo->reglist32[reg], sym->name); break;
+    case LT_U8:
+        fprintf(out_f, "\tmovzx\t%s, BYTE [%s]\n", reginfo->reglist32[reg], sym->name);
+        break;
+    case LT_I8:
+        fprintf(out_f, "\tmovsx\t%s, BYTE [%s]\n", reginfo->reglist32[reg], sym->name);
+        break;
+    case LT_U16:
+        fprintf(out_f, "\tmovzx\t%s, WORD [%s]\n", reginfo->reglist32[reg], sym->name);
+        break;
+    case LT_I16:
+        fprintf(out_f, "\tmovsx\t%s, WORD [%s]\n", reginfo->reglist32[reg], sym->name);
+        break;
     case LT_U32:
     case LT_I32:
         fprintf(out_f, "\tmov\t\t%s, DWORD [%s]\n", reginfo->reglist32[reg], sym->name);
@@ -419,7 +427,7 @@ int asm64_storeglob(int reg, Sym *sym)
         fprintf(out_f, "\tmov\t\t[%s], %s\n", sym->name, reginfo->reglist64[reg]);
         break;
     }
-    
+
     return reg;
 }
 
@@ -435,10 +443,18 @@ int asm64_loadlocl(Sym *sym)
 
     switch (type.type)
     {
-    case LT_U8:  fprintf(out_f, "\tmovzx\t%s, BYTE [rbp - %d]\n", reginfo->reglist32[reg], sym->offs); break;
-    case LT_I8:  fprintf(out_f, "\tmovsx\t%s, BYTE [rbp - %d]\n", reginfo->reglist32[reg], sym->offs); break;
-    case LT_U16: fprintf(out_f, "\tmovzx\t%s, WORD [rbp - %d]\n", reginfo->reglist32[reg], sym->offs); break;
-    case LT_I16: fprintf(out_f, "\tmovsx\t%s, WORD [rbp - %d]\n", reginfo->reglist32[reg], sym->offs); break;
+    case LT_U8:
+        fprintf(out_f, "\tmovzx\t%s, BYTE [rbp - %d]\n", reginfo->reglist32[reg], sym->offs);
+        break;
+    case LT_I8:
+        fprintf(out_f, "\tmovsx\t%s, BYTE [rbp - %d]\n", reginfo->reglist32[reg], sym->offs);
+        break;
+    case LT_U16:
+        fprintf(out_f, "\tmovzx\t%s, WORD [rbp - %d]\n", reginfo->reglist32[reg], sym->offs);
+        break;
+    case LT_I16:
+        fprintf(out_f, "\tmovsx\t%s, WORD [rbp - %d]\n", reginfo->reglist32[reg], sym->offs);
+        break;
     case LT_U32:
     case LT_I32:
         fprintf(out_f, "\tmov\t\t%s, DWORD [rbp - %d]\n", reginfo->reglist32[reg], sym->offs);
@@ -485,7 +501,8 @@ int asm64_storelocl(int reg, Sym *sym)
 
 int asm64_storederef(int reg0, int reg1, Sym *sym)
 {
-    if (type.addr) type.addr--;
+    if (type.addr)
+        type.addr--;
 
     if (type.addr)
     {
@@ -609,9 +626,9 @@ void asm64_jump(int l)
 int asm64_alloc(Sym *sym)
 {
     dl_add(func->stack, &sym);
-    fprintf(out_f, "\tsub\t\trsp, %d\n", type2size(sym->type) * sym->size);
-    
-    top += type2size(sym->type) * sym->size;
+    fprintf(out_f, "\tsub\t\trsp, %d\n", type2size(sym->type) * sym->type.size);
+
+    top += type2size(sym->type) * sym->type.size;
     sym->offs = top;
     return NULLREG;
 }
@@ -622,7 +639,7 @@ int asm64_func(Node *root)
     fprintf(out_f, "%s:\n", func->name);
     fprintf(out_f, "\tpush\trbp\n");
     fprintf(out_f, "\tmov\t\trbp, rsp\n");
-    
+
     reginfo = &arg64;
 
     for (int i = 0; i < func->argc; i++)
@@ -674,7 +691,7 @@ int asm64_call(int reg, Node *args)
     rfree_all();
     reginfo = tmp;
 
-    tmp = reginfo; 
+    tmp = reginfo;
     rfree_all();
     gen(args, NULLREG, A_ARGS);
     rfree_all();
@@ -688,14 +705,15 @@ int asm64_call(int reg, Node *args)
         Sym *sym = *(Sym**)func->stack->get[i];
         align += type2size(sym->type) * sym->size;
     }*/
-    //align = top % 16;
+    // align = top % 16;
     align += ALIGN - (top % ALIGN);
 
     fprintf(out_f, "\txor\t\trax, rax\n");
-    if (align) fprintf(out_f, "\tsub\t\trsp, %d\n", align);
+    if (align)
+        fprintf(out_f, "\tsub\t\trsp, %d\n", align);
     fprintf(out_f, "\tcall\t[rbp - %d]\n", offs);
-    if (align) fprintf(out_f, "\tadd\t\trsp, %d\n", align);
-
+    if (align)
+        fprintf(out_f, "\tadd\t\trsp, %d\n", align);
 
     rfree(reg);
     reg = ralloc();
@@ -713,7 +731,7 @@ int asm64_call(int reg, Node *args)
 
     top -= 8;
     fprintf(out_f, "\tadd\t\trsp, 8\n");
-    
+
     return reg;
 }
 
@@ -745,7 +763,8 @@ int asm64_if(Node *root, int cmd)
     int if_e, else_e, reg;
 
     if_e = label++;
-    if (root->right) else_e = label++;
+    if (root->right)
+        else_e = label++;
 
     func->level++;
 
@@ -758,7 +777,8 @@ int asm64_if(Node *root, int cmd)
     rfree_all();
     gen(root->left, NULLREG, cmd);
     rfree_all();
-    if (root->right) asm64_jump(else_e);
+    if (root->right)
+        asm64_jump(else_e);
     asm64_label(if_e);
 
     // else body
@@ -769,7 +789,7 @@ int asm64_if(Node *root, int cmd)
         rfree_all();
         asm64_label(else_e);
     }
-    
+
     func->level--;
     asm64_stackfree();
 
@@ -915,7 +935,7 @@ int asm64_incdec(int reg, char *ins)
 
 int asm64_asm(char *code)
 {
-    Tok  tok;
+    Tok tok;
     Sym *sym;
     char name[128];
     int c, len = strlen(code);
@@ -936,7 +956,7 @@ int asm64_asm(char *code)
                 name[j + 1] = 0;
                 c = code[i + j + 1];
             }
-            
+
             tok.val.i = adduniq(name);
             sym = getsym(&tok);
 
@@ -987,7 +1007,7 @@ void asm64_postamble(void)
         Sym *sym = glob->get[i];
         if (sym->class == C_GLOB && sym->kind == K_VAR)
         {
-            fprintf(out_f, "%s:\t\t\t\tresb %d\n", sym->name, type2size(sym->type) * sym->size);
+            fprintf(out_f, "%s:\t\t\t\tresb %d\n", sym->name, type2size(sym->type) * sym->type.size);
         }
     }
 
@@ -999,7 +1019,7 @@ void asm64_postamble(void)
         if (sym->class == C_DATA)
         {
             fprintf(out_f, "S%d:\t\t\t\tdb ", i);
-            for (int j = 0; j < sym->size; j++)
+            for (int j = 0; j < sym->type.size; j++)
             {
                 fprintf(out_f, "%d, ", sym->name[j]);
             }

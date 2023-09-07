@@ -1,0 +1,4 @@
+#define NULL  $0
+
+@printf(fmt: I8*, ...): U0;
+@putchar(c: I8): U0;

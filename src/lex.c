@@ -21,6 +21,12 @@ int next(Tok **t)
         return 0;
     }
 
+    if (!t)
+    {
+        tindex++;
+        return 1;
+    }
+
     *t = ((Tok *)tokens->get[tindex]);
     tindex++;
     return 1;
@@ -403,6 +409,9 @@ int scan(Tok *t)
         fseek(src_f, -1, SEEK_CUR);
 
         t->token = LT_ASSIGN;
+        break;
+    case '@':
+        t->token = LT_ATMARK;
         break;
     case ':':
         t->token = LT_COLON;

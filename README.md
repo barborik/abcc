@@ -2,6 +2,9 @@
 Adam Barborík's C Compiler<br><br>
 <img width="200" height="192" src="https://raw.githubusercontent.com/barborik/abcc/main/abc_logo.png">
 
+### WARNING!
+ABCC is currently being heavily worked on, major changes have been made since the project was presented as a part of my graduation. Documentation will (hopefully) be rewritten soon to reflect the changes made.
+
 ### <ins>ABOUT</ins>
 Adam Barborík's C Compiler is a compiler for a dialect of C called ABC - Adam Barborík C.<br>
 I always wanted to write my own compiler, so here it is.

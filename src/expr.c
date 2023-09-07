@@ -215,8 +215,8 @@ Node *unexp(void)
         {
             type.type = LT_I8;
             type.addr = 1;
-            type.complex = 1;
-            addglob(type, K_VAR, C_DATA, str, strlen(str), NULL, NULL, NULL);
+            type.size = strlen(str);
+            addglob(type, K_VAR, C_DATA, str, strlen(str), NULL, NULL);
         }
         return mkleaf(tok, 0);
     case LT_LPAR:
@@ -226,7 +226,16 @@ Node *unexp(void)
     case ST_IDENT:
         sym = getsym(tok);
         type = sym->type;
-        if (type.complex)
+
+        if (sym->kind == K_ENUM)
+        {
+            tok->token = ST_INTLIT;
+            tok->val.i = sym->eval;
+            *leaf = *mkleaf(tok, 0);
+            break;
+        }
+
+        if (type.size > 1)
         {
             *leaf = *mknode(ST_ADDR, mkleaf(tok, 0), NULL, NULL);
             break;

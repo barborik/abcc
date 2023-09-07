@@ -237,7 +237,9 @@ enum
     LT_CONTINUE, // continue
     LT_GOTO,     // goto
     LT_TDEF,     // typedef
+    LT_ENUM,     // enum
 
+    LT_ATMARK,    // @
     LT_COLON,     // :
     LT_SEMICOLON, // ;
     LT_LPAR,      // (

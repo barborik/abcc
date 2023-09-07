@@ -2,6 +2,9 @@
 
 main(U0): I32
 {
-    printf("NEW SYNTAX\n");
+    abc: I32;
+    abc = $12;
+    printf("CAU\n");
     return $0;
 }
+

@@ -48,7 +48,7 @@ Node *for_stmt(void)
     back();
     if (istype(t->token))
     {
-        left = var_decl(C_LOCL, (Type){NULL});
+        left = var_decl(C_LOCL);
     }
     else
     {
@@ -92,7 +92,7 @@ Node *label_stmt(void)
     next(&t);     // colon
 
     ident->token = ST_IDENT;
-    addlocl((Type){NULL}, K_LABL, C_LOCL, *(char **)uniq->get[ident->val.i], NULL);
+    addlocl((Type){NULL}, K_LABL, C_LOCL, *(char **)uniq->get[ident->val.i]);
     return mknode(ST_LABEL, mkleaf(ident, 0), NULL, NULL);
 }
 
@@ -133,7 +133,7 @@ Node *block_stmt(void)
         case LT_U16:
         case LT_U32:
         case LT_U64:
-            right = var_decl(C_LOCL, (Type){NULL});
+            right = var_decl(C_LOCL);
             break;
         case LT_GOTO:
             right = goto_stmt();
@@ -170,6 +170,12 @@ Node *block_stmt(void)
             return root;
         case LT_IDENT:
             sym = getsym(t);
+
+            if (tokseq(2, LT_IDENT, LT_COLON) || tokseq(2, LT_IDENT, LT_COMMA))
+            {
+                right = var_decl(C_LOCL);
+                break;
+            }
 
             if (sym->kind == K_LABL)
             {

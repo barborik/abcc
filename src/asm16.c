@@ -8,7 +8,7 @@ void asm16_stackfree(void)
         Sym *sym = *(Sym **)func->stack->get[i];
         if (sym->level > func->level)
         {
-            add += type2size(sym->type) * sym->size;
+            add += type2size(sym->type) * sym->type.size;
             dl_rem(func->stack, i);
             i--;
         }
@@ -76,7 +76,7 @@ int asm16_mul(int reg0, int reg1)
         fprintf(out_f, "\tpop\t\tax\n");
         break;
     }
-    
+
     rfree(reg1);
     return reg0;
 }
@@ -93,7 +93,7 @@ int asm16_div(int reg0, int reg1)
     {
         fprintf(out_f, "\tdiv\t\tbx\n");
 
-        fprintf(out_f, "\tmov\t\t%s, ax\n", reginfo->reglist[reg0]); 
+        fprintf(out_f, "\tmov\t\t%s, ax\n", reginfo->reglist[reg0]);
         fprintf(out_f, "\tpop\t\tbx\n");
         fprintf(out_f, "\tpop\t\tax\n");
 
@@ -263,7 +263,7 @@ int asm16_logand(int reg0, int reg1)
     fprintf(out_f, "\tmov\t\t%s, %s\n", reginfo->reglist[reg1], reginfo->reglist[tmp]);
 
     rfree(tmp);
-    
+
     return asm16_bitand(reg0, reg1);
 }
 
@@ -363,10 +363,18 @@ int asm16_loadglob(Sym *sym)
 
     switch (type.type)
     {
-    case LT_U8:  fprintf(out_f, "\tmovzx\t%s, BYTE [%s]\n", reginfo->reglist16[reg], sym->name); break;
-    case LT_I8:  fprintf(out_f, "\tmovsx\t%s, BYTE [%s]\n", reginfo->reglist16[reg], sym->name); break;
-    case LT_U16: fprintf(out_f, "\tmov\t\t%s, WORD [%s]\n", reginfo->reglist16[reg], sym->name); break;
-    case LT_I16: fprintf(out_f, "\tmov\t\t%s, WORD [%s]\n", reginfo->reglist16[reg], sym->name); break;
+    case LT_U8:
+        fprintf(out_f, "\tmovzx\t%s, BYTE [%s]\n", reginfo->reglist16[reg], sym->name);
+        break;
+    case LT_I8:
+        fprintf(out_f, "\tmovsx\t%s, BYTE [%s]\n", reginfo->reglist16[reg], sym->name);
+        break;
+    case LT_U16:
+        fprintf(out_f, "\tmov\t\t%s, WORD [%s]\n", reginfo->reglist16[reg], sym->name);
+        break;
+    case LT_I16:
+        fprintf(out_f, "\tmov\t\t%s, WORD [%s]\n", reginfo->reglist16[reg], sym->name);
+        break;
     }
 
     return reg;
@@ -391,7 +399,7 @@ int asm16_storeglob(int reg, Sym *sym)
         fprintf(out_f, "\tmov\t\t[%s], %s\n", sym->name, reginfo->reglist16[reg]);
         break;
     }
-    
+
     return reg;
 }
 
@@ -407,10 +415,18 @@ int asm16_loadlocl(Sym *sym)
 
     switch (type.type)
     {
-    case LT_U8:  fprintf(out_f, "\tmovzx\t%s, BYTE [bp - %d]\n", reginfo->reglist16[reg], sym->offs); break;
-    case LT_I8:  fprintf(out_f, "\tmovsx\t%s, BYTE [bp - %d]\n", reginfo->reglist16[reg], sym->offs); break;
-    case LT_U16: fprintf(out_f, "\tmov\t\t%s, WORD [bp - %d]\n", reginfo->reglist16[reg], sym->offs); break;
-    case LT_I16: fprintf(out_f, "\tmov\t\t%s, WORD [bp - %d]\n", reginfo->reglist16[reg], sym->offs); break;
+    case LT_U8:
+        fprintf(out_f, "\tmovzx\t%s, BYTE [bp - %d]\n", reginfo->reglist16[reg], sym->offs);
+        break;
+    case LT_I8:
+        fprintf(out_f, "\tmovsx\t%s, BYTE [bp - %d]\n", reginfo->reglist16[reg], sym->offs);
+        break;
+    case LT_U16:
+        fprintf(out_f, "\tmov\t\t%s, WORD [bp - %d]\n", reginfo->reglist16[reg], sym->offs);
+        break;
+    case LT_I16:
+        fprintf(out_f, "\tmov\t\t%s, WORD [bp - %d]\n", reginfo->reglist16[reg], sym->offs);
+        break;
     }
 
     return reg;
@@ -441,7 +457,8 @@ int asm16_storelocl(int reg, Sym *sym)
 
 int asm16_storederef(int reg0, int reg1, Sym *sym)
 {
-    if (type.addr) type.addr--;
+    if (type.addr)
+        type.addr--;
 
     if (type.addr)
     {
@@ -539,9 +556,9 @@ void asm16_jump(int l)
 int asm16_alloc(Sym *sym)
 {
     dl_add(func->stack, &sym);
-    fprintf(out_f, "\tsub\t\tsp, %d\n", type2size(sym->type) * sym->size);
-    
-    top += type2size(sym->type) * sym->size;
+    fprintf(out_f, "\tsub\t\tsp, %d\n", type2size(sym->type) * sym->type.size);
+
+    top += type2size(sym->type) * sym->type.size;
     sym->offs = top;
     return NULLREG;
 }
@@ -549,7 +566,7 @@ int asm16_alloc(Sym *sym)
 int asm16_func(Node *root)
 {
     int offs = 2;
-    
+
     top = 0;
     fprintf(out_f, "%s:\n", func->name);
     fprintf(out_f, "\tpush\tbp\n");
@@ -560,16 +577,15 @@ int asm16_func(Node *root)
         Sym *sym = func->local->get[i];
         type = sym->type;
 
-
         dl_add(func->stack, &sym);
 
-        //asm16_alloc(sym);
+        // asm16_alloc(sym);
 
         if (type.addr)
         {
             offs += 2;
-            //fprintf(out_f, "\tmov\t\t%s, WORD [bp - %d]\n", reginfo->reglist[0], offs);
-            //asm16_storelocl(0, sym);
+            // fprintf(out_f, "\tmov\t\t%s, WORD [bp - %d]\n", reginfo->reglist[0], offs);
+            // asm16_storelocl(0, sym);
             sym->offs = -offs;
             continue;
         }
@@ -580,17 +596,17 @@ int asm16_func(Node *root)
         case LT_I8:
             offs += 2;
             sym->offs = -offs;
-            //fprintf(out_f, "\tmov\t\t%s, BYTE [bp - %d]\n", reginfo->reglist8[0], offs);
+            // fprintf(out_f, "\tmov\t\t%s, BYTE [bp - %d]\n", reginfo->reglist8[0], offs);
             break;
         case LT_U16:
         case LT_I16:
             offs += 2;
             sym->offs = -offs;
-            //fprintf(out_f, "\tmov\t\t%s, WORD [bp - %d]\n", reginfo->reglist16[0], offs);
+            // fprintf(out_f, "\tmov\t\t%s, WORD [bp - %d]\n", reginfo->reglist16[0], offs);
             break;
         }
 
-        //asm16_storelocl(0, sym);
+        // asm16_storelocl(0, sym);
     }
 
     gen(root, NULLREG, A_EXEC);
@@ -635,7 +651,8 @@ int asm16_if(Node *root, int cmd)
     int if_e, else_e, reg;
 
     if_e = label++;
-    if (root->right) else_e = label++;
+    if (root->right)
+        else_e = label++;
 
     func->level++;
 
@@ -648,7 +665,8 @@ int asm16_if(Node *root, int cmd)
     rfree_all();
     gen(root->left, NULLREG, cmd);
     rfree_all();
-    if (root->right) asm16_jump(else_e);
+    if (root->right)
+        asm16_jump(else_e);
     asm16_label(if_e);
 
     // else body
@@ -659,7 +677,7 @@ int asm16_if(Node *root, int cmd)
         rfree_all();
         asm16_label(else_e);
     }
-    
+
     func->level--;
     asm16_stackfree();
 
@@ -796,7 +814,7 @@ int asm16_incdec(int reg, char *ins)
 
 int asm16_asm(char *code)
 {
-    Tok  tok;
+    Tok tok;
     Sym *sym;
     char name[128];
     int c, len = strlen(code);
@@ -817,7 +835,7 @@ int asm16_asm(char *code)
                 name[j + 1] = 0;
                 c = code[i + j + 1];
             }
-            
+
             tok.val.i = adduniq(name);
             sym = getsym(&tok);
 
@@ -876,7 +894,7 @@ void asm16_postamble(void)
         Sym *sym = glob->get[i];
         if (sym->class == C_GLOB && !sym->local)
         {
-            fprintf(out_f, "%s:\t\t\t\tresb %d\n", sym->name, type2size(sym->type) * sym->size);
+            fprintf(out_f, "%s:\t\t\t\tresb %d\n", sym->name, type2size(sym->type) * sym->type.size);
         }
     }
 
@@ -888,7 +906,7 @@ void asm16_postamble(void)
         if (sym->class == C_DATA)
         {
             fprintf(out_f, "S%d:\t\t\t\tdb ", i);
-            for (int j = 0; j < sym->size; j++)
+            for (int j = 0; j < sym->type.size; j++)
             {
                 fprintf(out_f, "%d, ", sym->name[j]);
             }
